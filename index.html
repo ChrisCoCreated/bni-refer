@@ -1125,6 +1125,9 @@ Mortgage broker"></textarea>
       }
 
       function handleEditorInput(event) {
+        if (event.target.classList.contains('is-specific')) {
+          return;
+        }
         const id = getRowEntryId(event.target);
         if (id < 0 || !entries[id]) {
           return;
