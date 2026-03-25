@@ -700,7 +700,10 @@ Mortgage broker"></textarea>
         const entries = readEntriesFromEditor();
         const raw = entries.map(entryToLine).filter(Boolean).join('\n');
         const meetingName = meetingNameEl.value.trim();
-        const meetingDate = meetingDateEl.value;
+        const meetingDate = meetingDateEl.value || getTodayDateValue();
+        if (!meetingDateEl.value) {
+          meetingDateEl.value = meetingDate;
+        }
         const url = new URL(window.location.href);
         if (raw) {
           url.searchParams.set('list', raw.replace(/\r?\n/g, '\n'));
@@ -729,6 +732,12 @@ Mortgage broker"></textarea>
         shareEl.value = url.toString();
         window.history.replaceState(null, '', url);
         updateMeetingHeading();
+      }
+
+      function getTodayDateValue() {
+        const today = new Date();
+        const localMidnight = new Date(today.getTime() - (today.getTimezoneOffset() * 60000));
+        return localMidnight.toISOString().slice(0, 10);
       }
 
       function formatMeetingDate(value) {
@@ -793,6 +802,8 @@ Mortgage broker"></textarea>
         const dateParam = url.searchParams.get('date');
         if (dateParam) {
           meetingDateEl.value = dateParam;
+        } else if (!meetingDateEl.value) {
+          meetingDateEl.value = getTodayDateValue();
         }
         const hasList = !!(listParam && listParam.trim());
         const hasJoin = !!(joinParam && joinParam.trim());
