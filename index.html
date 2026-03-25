@@ -742,6 +742,7 @@ Mortgage broker"></textarea>
       function setShareUrl() {
         updateUrlFromState(getStateFromUI());
         updateMeetingHeading();
+        return shareUrl;
       }
 
       function getTodayDateValue() {
@@ -892,9 +893,9 @@ Mortgage broker"></textarea>
       });
 
       $('#copyShare').addEventListener('click', async () => {
-        setShareUrl();
+        const shareUrl = setShareUrl();
         try {
-          await navigator.clipboard.writeText(shareEl.value);
+          await navigator.clipboard.writeText(shareUrl);
         } catch (_) {
           shareEl.select();
           document.execCommand('copy');
