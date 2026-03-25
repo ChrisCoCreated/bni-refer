@@ -338,6 +338,7 @@ Mortgage broker"></textarea>
     and <a href="https://www.planwithcare.co.uk/" target="_blank" rel="noopener">Plan with Care</a>.
   </div>
 
+  <script src="https://cdn.jsdelivr.net/npm/lz-string@1.5.0/libs/lz-string.min.js"></script>
   <script>
     (function () {
       const $ = (sel) => document.querySelector(sel);
@@ -696,38 +697,46 @@ Mortgage broker"></textarea>
         }
       }
 
-      function setShareUrl() {
+      function getStateFromUI() {
         const entries = readEntriesFromEditor();
-        const raw = entries.map(entryToLine).filter(Boolean).join('\n');
+        const list = entries.map(entryToLine).filter(Boolean).join('\n');
         const meetingName = meetingNameEl.value.trim();
         const meetingDate = meetingDateEl.value;
+        const join = joinProspectsEl ? joinProspectsEl.value.trim() : '';
+        return {
+          meeting: meetingName,
+          date: meetingDate,
+          list,
+          join,
+        };
+      }
+
+      function isEmptyState(state) {
+        return !(
+          (state.meeting && state.meeting.trim()) ||
+          (state.date && state.date.trim()) ||
+          (state.list && state.list.trim()) ||
+          (state.join && state.join.trim())
+        );
+      }
+
+      function updateUrlFromState(state) {
         const url = new URL(window.location.href);
-        if (raw) {
-          url.searchParams.set('list', raw.replace(/\r?\n/g, '\n'));
-        } else {
-          url.searchParams.delete('list');
+        if (isEmptyState(state)) {
+          url.hash = '';
+          window.history.replaceState(null, '', url.toString());
+          shareEl.value = url.toString();
+          return;
         }
-        if (meetingName) {
-          url.searchParams.set('meeting', meetingName);
-        } else {
-          url.searchParams.delete('meeting');
-        }
-        if (meetingDate) {
-          url.searchParams.set('date', meetingDate);
-        } else {
-          url.searchParams.delete('date');
-        }
-        if (joinProspectsEl) {
-          const joinRaw = joinProspectsEl.value.trim();
-          if (joinRaw) {
-            url.searchParams.set('join', joinRaw.replace(/\r?\n/g, '\n'));
-          } else {
-            url.searchParams.delete('join');
-          }
-        }
-        url.searchParams.delete('edit');
+        const json = JSON.stringify(state);
+        const compressed = LZString.compressToEncodedURIComponent(json);
+        url.hash = `data=${compressed}`;
+        window.history.replaceState(null, '', url.toString());
         shareEl.value = url.toString();
-        window.history.replaceState(null, '', url);
+      }
+
+      function setShareUrl() {
+        updateUrlFromState(getStateFromUI());
         updateMeetingHeading();
       }
 
@@ -775,28 +784,53 @@ Mortgage broker"></textarea>
         }
       }
 
-      function loadFromUrl() {
-        const url = new URL(window.location.href);
-        const listParam = url.searchParams.get('list');
-        hydrateEditorRows(parseListEntries(listParam || ''));
-        if (listParam) {
+      function loadStateFromUrl() {
+        const hash = window.location.hash;
+        if (!hash.startsWith('#data=')) {
+          return null;
+        }
+        const compressed = hash.replace('#data=', '');
+        try {
+          const json = LZString.decompressFromEncodedURIComponent(compressed);
+          if (!json) {
+            return null;
+          }
+          const parsed = JSON.parse(json);
+          if (!parsed || typeof parsed !== 'object') {
+            return null;
+          }
+          return parsed;
+        } catch (e) {
+          console.error('Failed to decode URL data', e);
+          return null;
+        }
+      }
+
+      function applyStateToUI(state) {
+        const list = typeof state.list === 'string' ? state.list : '';
+        const join = typeof state.join === 'string' ? state.join : '';
+        const meeting = typeof state.meeting === 'string' ? state.meeting : '';
+        const date = typeof state.date === 'string' ? state.date : '';
+
+        hydrateEditorRows(parseListEntries(list));
+        if (joinProspectsEl) {
+          joinProspectsEl.value = join;
+        }
+        meetingNameEl.value = meeting;
+        meetingDateEl.value = date;
+      }
+
+      function loadFromUrl(state = loadStateFromUrl()) {
+        if (state) {
+          applyStateToUI(state);
           render(readEntriesFromEditor());
+        } else {
+          hydrateEditorRows(parseListEntries(''));
         }
-        const joinParam = url.searchParams.get('join');
-        if (joinParam && joinProspectsEl) {
-          joinProspectsEl.value = joinParam;
-        }
-        const meetingParam = url.searchParams.get('meeting');
-        if (meetingParam) {
-          meetingNameEl.value = meetingParam;
-        }
-        const dateParam = url.searchParams.get('date');
-        if (dateParam) {
-          meetingDateEl.value = dateParam;
-        }
-        const hasList = !!(listParam && listParam.trim());
-        const hasJoin = !!(joinParam && joinParam.trim());
-        const isViewer = (hasList || hasJoin) && !url.searchParams.has('edit');
+
+        const hasList = !!(state && typeof state.list === 'string' && state.list.trim());
+        const hasJoin = !!(state && typeof state.join === 'string' && state.join.trim());
+        const isViewer = hasList || hasJoin;
         bodyEl.dataset.mode = isViewer ? 'viewer' : 'editor';
         meetingNameEl.readOnly = isViewer;
         meetingDateEl.disabled = isViewer;
@@ -890,9 +924,18 @@ Mortgage broker"></textarea>
 
       if (enableEditingEl) {
         enableEditingEl.addEventListener('click', () => {
-          const url = new URL(window.location.href);
-          url.searchParams.set('edit', '1');
-          window.location.href = url.toString();
+          bodyEl.dataset.mode = 'editor';
+          meetingNameEl.readOnly = false;
+          meetingDateEl.disabled = false;
+          if (addRowEl) {
+            addRowEl.disabled = false;
+          }
+          entryRowsEl.querySelectorAll('input,button').forEach((el) => {
+            el.disabled = false;
+          });
+          if (joinProspectsEl) {
+            joinProspectsEl.readOnly = false;
+          }
         });
       }
 
@@ -953,9 +996,21 @@ Mortgage broker"></textarea>
       meetingNameEl.addEventListener('input', setShareUrl);
       meetingDateEl.addEventListener('input', setShareUrl);
 
-      loadFromUrl();
-      render(readEntriesFromEditor());
-      renderJoinProspects(getJoinProspects());
+      function initFromUrl() {
+        const state = loadStateFromUrl();
+        if (state) {
+          applyStateToUI(state);
+        }
+        loadFromUrl(state);
+        render(readEntriesFromEditor());
+        renderJoinProspects(getJoinProspects());
+      }
+
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initFromUrl);
+      } else {
+        initFromUrl();
+      }
     })();
   </script>
 </body>
