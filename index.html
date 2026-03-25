@@ -36,10 +36,23 @@
     .entry-table .specific-cell { width: 90px; text-align: center; }
     .entry-table .actions-cell { width: 88px; text-align: right; }
     .entry-table .remove-row { padding: 8px 10px; }
-    .entry-table tr[data-type="note"] .specific-name,
-    .entry-table tr[data-type="note"] .specific-org { display: none; }
-    .entry-table tr[data-type="note"] .note-only { display: table-cell; }
-    .entry-table tr[data-type="contact"] .note-only { display: none; }
+    .editor-subheading { margin: 20px 0 4px; }
+    .add-row-form {
+      display: grid;
+      grid-template-columns: 90px minmax(180px, 1fr) minmax(180px, 1fr) minmax(180px, 1fr) minmax(220px, 1fr) auto;
+      gap: 8px;
+      align-items: center;
+      margin: 12px 0 18px;
+    }
+    .add-row-form label {
+      display: inline-flex;
+      gap: 8px;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+    }
+    .table-wrapper + .table-wrapper { margin-top: 16px; }
+    .empty-state { color: #666; font-style: italic; }
     .entry-actions { margin-top: 12px; }
 
     .editor-controls { margin: 32px 0; }
@@ -268,23 +281,44 @@
         <input id="meetingDate" type="date" />
       </div>
 
+      <div class="add-row-form" aria-label="Add referral row">
+        <label for="newSpecific"><input id="newSpecific" type="checkbox" checked />Specific</label>
+        <input id="newRequester" type="text" placeholder="Requester" />
+        <input id="newName" type="text" placeholder="Name" />
+        <input id="newOrganisation" type="text" placeholder="Organisation" />
+        <input id="newGeneralNote" type="text" placeholder="General note (for not specific)" />
+        <button id="addRow" type="button">Add row</button>
+      </div>
+
+      <h3 class="editor-subheading">Specific referrals</h3>
       <div class="table-wrapper">
-        <table class="entry-table" aria-label="Referral entry editor">
+        <table class="entry-table" aria-label="Specific referral table">
           <thead>
             <tr>
               <th class="specific-cell">Specific</th>
               <th>Requester</th>
-              <th class="specific-name">Name</th>
-              <th class="specific-org">Organisation</th>
-              <th class="note-only">General note</th>
+              <th>Name</th>
+              <th>Organisation</th>
               <th class="actions-cell">Actions</th>
             </tr>
           </thead>
-          <tbody id="entryRows"></tbody>
+          <tbody id="specificRows"></tbody>
         </table>
       </div>
-      <div class="entry-actions">
-        <button id="addRow" type="button">Add row</button>
+
+      <h3 class="editor-subheading">General notes (not specific)</h3>
+      <div class="table-wrapper">
+        <table class="entry-table" aria-label="General notes table">
+          <thead>
+            <tr>
+              <th class="specific-cell">Specific</th>
+              <th>Requester</th>
+              <th>General note</th>
+              <th class="actions-cell">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="noteRows"></tbody>
+        </table>
       </div>
 
       <section id="joinProspectsEditor" class="prospects">
@@ -343,8 +377,14 @@ Mortgage broker"></textarea>
     (function () {
       const $ = (sel) => document.querySelector(sel);
       const bodyEl = document.body;
-      const entryRowsEl = $('#entryRows');
+      const specificRowsEl = $('#specificRows');
+      const noteRowsEl = $('#noteRows');
       const addRowEl = $('#addRow');
+      const newSpecificEl = $('#newSpecific');
+      const newRequesterEl = $('#newRequester');
+      const newNameEl = $('#newName');
+      const newOrganisationEl = $('#newOrganisation');
+      const newGeneralNoteEl = $('#newGeneralNote');
       const meetingNameEl = $('#meetingName');
       const meetingDateEl = $('#meetingDate');
       const meetingHeadingEl = $('#meetingHeading');
@@ -362,6 +402,7 @@ Mortgage broker"></textarea>
       const joinProspectsEl = $('#joinProspects');
       const joinProspectsViewerSectionEl = $('#joinProspectsViewer');
       const joinProspectsLists = Array.from(document.querySelectorAll('.join-prospects-list'));
+      let entries = [];
 
       bodyEl.dataset.mode = 'editor';
 
@@ -409,16 +450,16 @@ Mortgage broker"></textarea>
         return `${requestorPrefix}${name}${organization ? `, ${organization}` : ''}`;
       }
 
-      function createEntryRow(entry = { type: 'contact', requestor: '', name: '', organization: '', note: '' }) {
+      function createContactRow(entry = { type: 'contact', requestor: '', name: '', organization: '' }) {
         const row = document.createElement('tr');
-        row.dataset.type = entry.type === 'note' ? 'note' : 'contact';
+        row.dataset.type = 'contact';
 
         const specificTd = document.createElement('td');
         specificTd.className = 'specific-cell';
         const specificCheckbox = document.createElement('input');
         specificCheckbox.type = 'checkbox';
         specificCheckbox.className = 'is-specific';
-        specificCheckbox.checked = row.dataset.type === 'contact';
+        specificCheckbox.checked = true;
         specificTd.appendChild(specificCheckbox);
         row.appendChild(specificTd);
 
@@ -451,8 +492,41 @@ Mortgage broker"></textarea>
         orgTd.appendChild(orgInput);
         row.appendChild(orgTd);
 
+        const actionsTd = document.createElement('td');
+        actionsTd.className = 'actions-cell';
+        const removeBtn = document.createElement('button');
+        removeBtn.type = 'button';
+        removeBtn.className = 'remove-row';
+        removeBtn.textContent = 'Remove';
+        actionsTd.appendChild(removeBtn);
+        row.appendChild(actionsTd);
+
+        return row;
+      }
+
+      function createNoteRow(entry = { type: 'note', requestor: '', note: '' }) {
+        const row = document.createElement('tr');
+        row.dataset.type = 'note';
+
+        const specificTd = document.createElement('td');
+        specificTd.className = 'specific-cell';
+        const specificCheckbox = document.createElement('input');
+        specificCheckbox.type = 'checkbox';
+        specificCheckbox.className = 'is-specific';
+        specificCheckbox.checked = false;
+        specificTd.appendChild(specificCheckbox);
+        row.appendChild(specificTd);
+
+        const requestorTd = document.createElement('td');
+        const requestorInput = document.createElement('input');
+        requestorInput.type = 'text';
+        requestorInput.className = 'requestor';
+        requestorInput.placeholder = 'Requester';
+        requestorInput.value = entry.requestor || '';
+        requestorTd.appendChild(requestorInput);
+        row.appendChild(requestorTd);
+
         const noteTd = document.createElement('td');
-        noteTd.className = 'note-only';
         const noteInput = document.createElement('input');
         noteInput.type = 'text';
         noteInput.className = 'note';
@@ -469,44 +543,43 @@ Mortgage broker"></textarea>
         removeBtn.textContent = 'Remove';
         actionsTd.appendChild(removeBtn);
         row.appendChild(actionsTd);
-
         return row;
       }
 
-      function readEntriesFromEditor() {
-        return Array.from(entryRowsEl.querySelectorAll('tr')).map((row) => {
-          const type = row.dataset.type === 'note' ? 'note' : 'contact';
-          const requestor = row.querySelector('.requestor').value.trim();
-          if (type === 'note') {
-            return {
-              type: 'note',
-              requestor,
-              note: row.querySelector('.note').value.trim(),
-            };
-          }
-          const name = row.querySelector('.name').value.trim();
-          const organization = row.querySelector('.organization').value.trim();
-          return {
-            type: 'contact',
-            requestor,
-            name,
-            organization,
-            query: `${name}${organization ? ` ${organization}` : ''}`.trim(),
-          };
-        }).filter((entry) => {
-          if (entry.type === 'note') {
-            return entry.requestor || entry.note;
-          }
-          return entry.requestor || entry.name || entry.organization;
-        });
+      function sortEntries(list) {
+        return [...list].sort((a, b) => (a.requestor || '').localeCompare((b.requestor || ''), undefined, { sensitivity: 'base' }));
       }
 
-      function hydrateEditorRows(entries) {
-        entryRowsEl.innerHTML = '';
-        if (entries.length) {
-          entries.forEach((entry) => entryRowsEl.appendChild(createEntryRow(entry)));
+      function renderEditorTables() {
+        const specificEntries = sortEntries(entries.filter((entry) => entry.type === 'contact'));
+        const noteEntries = sortEntries(entries.filter((entry) => entry.type === 'note'));
+        specificRowsEl.innerHTML = '';
+        noteRowsEl.innerHTML = '';
+
+        if (!specificEntries.length) {
+          const row = document.createElement('tr');
+          row.innerHTML = '<td colspan="5" class="empty-state">No specific referrals yet.</td>';
+          specificRowsEl.appendChild(row);
         } else {
-          entryRowsEl.appendChild(createEntryRow());
+          specificEntries.forEach((entry, index) => {
+            const row = createContactRow(entry);
+            row.dataset.entryId = String(entries.indexOf(entry));
+            row.dataset.displayIndex = String(index);
+            specificRowsEl.appendChild(row);
+          });
+        }
+
+        if (!noteEntries.length) {
+          const row = document.createElement('tr');
+          row.innerHTML = '<td colspan="4" class="empty-state">No general notes yet.</td>';
+          noteRowsEl.appendChild(row);
+        } else {
+          noteEntries.forEach((entry, index) => {
+            const row = createNoteRow(entry);
+            row.dataset.entryId = String(entries.indexOf(entry));
+            row.dataset.displayIndex = String(index);
+            noteRowsEl.appendChild(row);
+          });
         }
       }
 
@@ -698,8 +771,7 @@ Mortgage broker"></textarea>
       }
 
       function getStateFromUI() {
-        const entries = readEntriesFromEditor();
-        const list = entries.map(entryToLine).filter(Boolean).join('\n');
+        const list = sortEntries(entries).map(entryToLine).filter(Boolean).join('\n');
         const meetingName = meetingNameEl.value.trim();
         const meetingDate = meetingDateEl.value;
         const join = joinProspectsEl ? joinProspectsEl.value.trim() : '';
@@ -823,7 +895,8 @@ Mortgage broker"></textarea>
         const meeting = typeof state.meeting === 'string' ? state.meeting : '';
         const date = typeof state.date === 'string' ? state.date : '';
 
-        hydrateEditorRows(parseListEntries(list));
+        entries = parseListEntries(list);
+        renderEditorTables();
         if (joinProspectsEl) {
           joinProspectsEl.value = join;
         }
@@ -834,9 +907,10 @@ Mortgage broker"></textarea>
       function loadFromUrl(state = loadStateFromUrl()) {
         if (state) {
           applyStateToUI(state);
-          render(readEntriesFromEditor());
+          render(entries);
         } else {
-          hydrateEditorRows(parseListEntries(''));
+          entries = [];
+          renderEditorTables();
         }
 
         const url = new URL(window.location.href);
@@ -856,9 +930,14 @@ Mortgage broker"></textarea>
         if (addRowEl) {
           addRowEl.disabled = isViewer;
         }
-        entryRowsEl.querySelectorAll('input,button').forEach((el) => {
+        document.querySelectorAll('#specificRows input,#specificRows button,#noteRows input,#noteRows button').forEach((el) => {
           el.disabled = isViewer;
         });
+        newSpecificEl.disabled = isViewer;
+        newRequesterEl.disabled = isViewer;
+        newNameEl.disabled = isViewer;
+        newOrganisationEl.disabled = isViewer;
+        newGeneralNoteEl.disabled = isViewer;
         if (joinProspectsEl) {
           joinProspectsEl.readOnly = isViewer;
         }
@@ -866,30 +945,30 @@ Mortgage broker"></textarea>
       }
 
       openAllLinkedInEl.addEventListener('click', () => {
-        const list = readEntriesFromEditor();
-        list.forEach((item) => {
-          if (item.type === 'contact' && item.query && item.query.trim()) {
-            const { liUrl } = searchUrls(item.query);
+        sortEntries(entries).forEach((item) => {
+          const query = `${item.name || ''} ${item.organization || ''}`.trim();
+          if (item.type === 'contact' && query) {
+            const { liUrl } = searchUrls(query);
             window.open(liUrl, '_blank');
           }
         });
       });
 
       openAllFacebookEl.addEventListener('click', () => {
-        const list = readEntriesFromEditor();
-        list.forEach((item) => {
-          if (item.type === 'contact' && item.query && item.query.trim()) {
-            const { fbUrl } = searchUrls(item.query);
+        sortEntries(entries).forEach((item) => {
+          const query = `${item.name || ''} ${item.organization || ''}`.trim();
+          if (item.type === 'contact' && query) {
+            const { fbUrl } = searchUrls(query);
             window.open(fbUrl, '_blank');
           }
         });
       });
 
       openAllGoogleEl.addEventListener('click', () => {
-        const list = readEntriesFromEditor();
-        list.forEach((item) => {
-          if (item.type === 'contact' && item.query && item.query.trim()) {
-            const { gUrl } = searchUrls(item.query);
+        sortEntries(entries).forEach((item) => {
+          const query = `${item.name || ''} ${item.organization || ''}`.trim();
+          if (item.type === 'contact' && query) {
+            const { gUrl } = searchUrls(query);
             window.open(gUrl, '_blank');
           }
         });
@@ -949,9 +1028,14 @@ Mortgage broker"></textarea>
           if (addRowEl) {
             addRowEl.disabled = false;
           }
-          entryRowsEl.querySelectorAll('input,button').forEach((el) => {
+          document.querySelectorAll('#specificRows input,#specificRows button,#noteRows input,#noteRows button').forEach((el) => {
             el.disabled = false;
           });
+          newSpecificEl.disabled = false;
+          newRequesterEl.disabled = false;
+          newNameEl.disabled = false;
+          newOrganisationEl.disabled = false;
+          newGeneralNoteEl.disabled = false;
           if (joinProspectsEl) {
             joinProspectsEl.readOnly = false;
           }
@@ -969,42 +1053,107 @@ Mortgage broker"></textarea>
       function scheduleUpdates() {
         clearTimeout(updateTimer);
         updateTimer = setTimeout(() => {
-          const entries = readEntriesFromEditor();
-          render(entries);
+          render(sortEntries(entries));
           renderJoinProspects(getJoinProspects());
           setShareUrl();
         }, 250);
       }
 
-      if (entryRowsEl) {
-        entryRowsEl.addEventListener('input', scheduleUpdates);
-        entryRowsEl.addEventListener('change', (event) => {
-          const target = event.target;
-          if (target.classList.contains('is-specific')) {
-            const row = target.closest('tr');
-            row.dataset.type = target.checked ? 'contact' : 'note';
-            scheduleUpdates();
-          }
-        });
-        entryRowsEl.addEventListener('click', (event) => {
-          const target = event.target;
-          if (!target.classList.contains('remove-row')) {
-            return;
-          }
-          const row = target.closest('tr');
-          if (!row) {
-            return;
-          }
-          row.remove();
-          if (!entryRowsEl.querySelector('tr')) {
-            entryRowsEl.appendChild(createEntryRow());
-          }
-          scheduleUpdates();
-        });
+      function getRowEntryId(target) {
+        const row = target.closest('tr');
+        if (!row || !row.dataset.entryId) {
+          return -1;
+        }
+        return Number(row.dataset.entryId);
+      }
+
+      function handleEditorInput(event) {
+        const id = getRowEntryId(event.target);
+        if (id < 0 || !entries[id]) {
+          return;
+        }
+        const row = event.target.closest('tr');
+        const entry = entries[id];
+        entry.requestor = (row.querySelector('.requestor')?.value || '').trim();
+        if (entry.type === 'contact') {
+          entry.name = (row.querySelector('.name')?.value || '').trim();
+          entry.organization = (row.querySelector('.organization')?.value || '').trim();
+        } else {
+          entry.note = (row.querySelector('.note')?.value || '').trim();
+        }
+        renderEditorTables();
+        scheduleUpdates();
+      }
+
+      function handleEditorChange(event) {
+        if (!event.target.classList.contains('is-specific')) {
+          return;
+        }
+        const id = getRowEntryId(event.target);
+        if (id < 0 || !entries[id]) {
+          return;
+        }
+        const current = entries[id];
+        if (event.target.checked && current.type === 'note') {
+          entries[id] = {
+            type: 'contact',
+            requestor: current.requestor || '',
+            name: current.note || '',
+            organization: '',
+          };
+        } else if (!event.target.checked && current.type === 'contact') {
+          entries[id] = {
+            type: 'note',
+            requestor: current.requestor || '',
+            note: [current.name, current.organization].filter(Boolean).join(', '),
+          };
+        }
+        renderEditorTables();
+        scheduleUpdates();
+      }
+
+      function handleEditorClick(event) {
+        if (!event.target.classList.contains('remove-row')) {
+          return;
+        }
+        const id = getRowEntryId(event.target);
+        if (id < 0 || !entries[id]) {
+          return;
+        }
+        entries.splice(id, 1);
+        renderEditorTables();
+        scheduleUpdates();
+      }
+
+      if (specificRowsEl && noteRowsEl) {
+        specificRowsEl.addEventListener('input', handleEditorInput);
+        noteRowsEl.addEventListener('input', handleEditorInput);
+        specificRowsEl.addEventListener('change', handleEditorChange);
+        noteRowsEl.addEventListener('change', handleEditorChange);
+        specificRowsEl.addEventListener('click', handleEditorClick);
+        noteRowsEl.addEventListener('click', handleEditorClick);
       }
       if (addRowEl) {
         addRowEl.addEventListener('click', () => {
-          entryRowsEl.appendChild(createEntryRow());
+          const isSpecific = !!newSpecificEl.checked;
+          const requestor = newRequesterEl.value.trim();
+          const name = newNameEl.value.trim();
+          const organization = newOrganisationEl.value.trim();
+          const note = newGeneralNoteEl.value.trim();
+          if (isSpecific && !(requestor || name || organization)) {
+            return;
+          }
+          if (!isSpecific && !(requestor || note)) {
+            return;
+          }
+          entries.push(isSpecific
+            ? { type: 'contact', requestor, name, organization }
+            : { type: 'note', requestor, note });
+          newRequesterEl.value = '';
+          newNameEl.value = '';
+          newOrganisationEl.value = '';
+          newGeneralNoteEl.value = '';
+          renderEditorTables();
           scheduleUpdates();
         });
       }
@@ -1021,7 +1170,7 @@ Mortgage broker"></textarea>
           applyStateToUI(state);
         }
         loadFromUrl(state);
-        render(readEntriesFromEditor());
+        render(sortEntries(entries));
         renderJoinProspects(getJoinProspects());
       }
 
