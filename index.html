@@ -721,24 +721,34 @@ Mortgage broker"></textarea>
       }
 
       function updateUrlFromState(state) {
+        const meetingDate = meetingDateEl.value || getTodayDateValue();
+        if (!meetingDateEl.value) {
+          meetingDateEl.value = meetingDate;
+        }
+        const url = new URL(window.location.href);
         if (isEmptyState(state)) {
-          const baseUrl = `${window.location.origin}${window.location.pathname}`;
-          window.history.replaceState(null, '', baseUrl);
-          shareEl.value = baseUrl;
-          return baseUrl;
+          url.hash = '';
+          window.history.replaceState(null, '', url.toString());
+          shareEl.value = url.toString();
+          return;
         }
         const json = JSON.stringify(state);
         const compressed = LZString.compressToEncodedURIComponent(json);
-        const shareUrl = `${window.location.origin}${window.location.pathname}#data=${compressed}`;
-        window.history.replaceState(null, '', shareUrl);
-        shareEl.value = shareUrl;
-        return shareUrl;
+        url.hash = `data=${compressed}`;
+        window.history.replaceState(null, '', url.toString());
+        shareEl.value = url.toString();
       }
 
       function setShareUrl() {
-        const shareUrl = updateUrlFromState(getStateFromUI());
+        updateUrlFromState(getStateFromUI());
         updateMeetingHeading();
         return shareUrl;
+      }
+
+      function getTodayDateValue() {
+        const today = new Date();
+        const localMidnight = new Date(today.getTime() - (today.getTimezoneOffset() * 60000));
+        return localMidnight.toISOString().slice(0, 10);
       }
 
       function formatMeetingDate(value) {
@@ -827,6 +837,11 @@ Mortgage broker"></textarea>
           render(readEntriesFromEditor());
         } else {
           hydrateEditorRows(parseListEntries(''));
+        const dateParam = url.searchParams.get('date');
+        if (dateParam) {
+          meetingDateEl.value = dateParam;
+        } else if (!meetingDateEl.value) {
+          meetingDateEl.value = getTodayDateValue();
         }
 
         const hasList = !!(state && typeof state.list === 'string' && state.list.trim());
