@@ -29,6 +29,10 @@
     tfoot td { border-bottom: none; padding-top: 12px; }
     td .actions { margin-top: 4px; display: flex; gap: 8px; }
     td .actions img.icon { margin-right: 0; }
+    .platform-filters { margin: 0 0 12px; display: flex; gap: 16px; flex-wrap: wrap; }
+    .platform-filters label { display: inline-flex; gap: 6px; align-items: center; font-size: 14px; }
+    body[data-show-facebook="false"] .col-facebook { display: none; }
+    body[data-show-google="false"] .col-google { display: none; }
     .mobile-row { display: none; }
     .entry-table { width: 100%; border-collapse: collapse; margin-top: 12px; }
     .entry-table th, .entry-table td { border-bottom: 1px solid #eee; padding: 8px; vertical-align: middle; }
@@ -220,20 +224,24 @@
 </head>
 <body>
   <h1>BNI Referral Contact Generator</h1>
-  <p id="instructionsEditor">Use this referral helper during your BNI meeting. Enter each requested contact to generate LinkedIn, Facebook, and Google searches, launch every search at once with the “Open all” buttons, and share the compiled lookup list with the generated URL.</p>
-  <p id="instructionsViewer">Review this shared referral list from your BNI meeting. Use the LinkedIn, Facebook, and Google links or the “Open all” buttons to check each contact.</p>
+  <p id="instructionsEditor">Use this referral helper during your BNI meeting. Enter each requested contact to generate LinkedIn searches by default, then optionally show Facebook and Google links when needed, launch every search at once with the “Open all” buttons, and share the compiled lookup list with the generated URL.</p>
+  <p id="instructionsViewer">Review this shared referral list from your BNI meeting. LinkedIn links are shown by default; use the toggles to include Facebook and Google links when needed.</p>
 
   <section id="referralSection" style="display: none;">
     <h2>Referral links</h2>
     <h3 id="meetingHeading" class="meeting-heading" hidden></h3>
+    <div class="platform-filters" aria-label="Search platform visibility">
+      <label><input id="toggleFacebook" type="checkbox" />Show Facebook</label>
+      <label><input id="toggleGoogle" type="checkbox" />Show Google</label>
+    </div>
     <div class="table-wrapper">
       <table id="results" aria-live="polite">
         <thead>
           <tr>
             <th>Requester</th>
             <th>LinkedIn</th>
-            <th>Facebook</th>
-            <th>Google</th>
+            <th class="col-facebook">Facebook</th>
+            <th class="col-google">Google</th>
           </tr>
         </thead>
         <tbody id="resultsBody"></tbody>
@@ -243,10 +251,10 @@
             <td>
               <button id="openAllLinkedIn"><img class="icon" src="https://cdn-icons-png.flaticon.com/512/174/174857.png" alt="LinkedIn" />Open all in LinkedIn</button>
             </td>
-            <td>
+            <td class="col-facebook">
               <button id="openAllFacebook"><img class="icon" src="https://cdn-icons-png.flaticon.com/512/733/733547.png" alt="Facebook" />Open all in Facebook</button>
             </td>
-            <td>
+            <td class="col-google">
               <button id="openAllGoogle"><img class="icon" src="https://www.google.com/favicon.ico" alt="Google" />Open all in Google</button>
             </td>
           </tr>
@@ -395,6 +403,8 @@ Mortgage broker"></textarea>
       const openAllLinkedInEl = $('#openAllLinkedIn');
       const openAllFacebookEl = $('#openAllFacebook');
       const openAllGoogleEl = $('#openAllGoogle');
+      const toggleFacebookEl = $('#toggleFacebook');
+      const toggleGoogleEl = $('#toggleGoogle');
       const openBlankEl = $('#openBlank');
       const copyBlankEl = $('#copyBlank');
       const emailBlankEl = $('#emailBlank');
@@ -405,6 +415,15 @@ Mortgage broker"></textarea>
       let entries = [];
 
       bodyEl.dataset.mode = 'editor';
+      bodyEl.dataset.showFacebook = 'false';
+      bodyEl.dataset.showGoogle = 'false';
+
+      function updatePlatformVisibility() {
+        const showFacebook = !!(toggleFacebookEl && toggleFacebookEl.checked);
+        const showGoogle = !!(toggleGoogleEl && toggleGoogleEl.checked);
+        bodyEl.dataset.showFacebook = showFacebook ? 'true' : 'false';
+        bodyEl.dataset.showGoogle = showGoogle ? 'true' : 'false';
+      }
 
       function parseListEntries(raw) {
         if (!raw) {
@@ -618,9 +637,12 @@ Mortgage broker"></textarea>
             noteTd.textContent = item.note || '';
             dRow.appendChild(noteTd);
 
-            for (let i = 0; i < 2; i += 1) {
-              dRow.appendChild(document.createElement('td'));
-            }
+            const fbEmptyTd = document.createElement('td');
+            fbEmptyTd.className = 'col-facebook';
+            dRow.appendChild(fbEmptyTd);
+            const gEmptyTd = document.createElement('td');
+            gEmptyTd.className = 'col-google';
+            dRow.appendChild(gEmptyTd);
 
             resultsBodyEl.appendChild(dRow);
 
@@ -651,8 +673,11 @@ Mortgage broker"></textarea>
           dReqTd.textContent = requestor;
           dRow.appendChild(dReqTd);
 
-          function createCell(url, src, alt) {
+          function createCell(url, src, alt, className) {
             const td = document.createElement('td');
+            if (className) {
+              td.className = className;
+            }
             const a = document.createElement('a');
             a.href = url;
             a.target = '_blank';
@@ -668,8 +693,8 @@ Mortgage broker"></textarea>
           }
 
           dRow.appendChild(createCell(liUrl, 'https://cdn-icons-png.flaticon.com/512/174/174857.png', 'LinkedIn'));
-          dRow.appendChild(createCell(fbUrl, 'https://cdn-icons-png.flaticon.com/512/733/733547.png', 'Facebook'));
-          dRow.appendChild(createCell(gUrl, 'https://www.google.com/favicon.ico', 'Google'));
+          dRow.appendChild(createCell(fbUrl, 'https://cdn-icons-png.flaticon.com/512/733/733547.png', 'Facebook', 'col-facebook'));
+          dRow.appendChild(createCell(gUrl, 'https://www.google.com/favicon.ico', 'Google', 'col-google'));
           resultsBodyEl.appendChild(dRow);
 
           // mobile row
@@ -702,8 +727,12 @@ Mortgage broker"></textarea>
           }
 
           addAction(liUrl, 'https://cdn-icons-png.flaticon.com/512/174/174857.png', 'LinkedIn');
-          addAction(fbUrl, 'https://cdn-icons-png.flaticon.com/512/733/733547.png', 'Facebook');
-          addAction(gUrl, 'https://www.google.com/favicon.ico', 'Google');
+          if (bodyEl.dataset.showFacebook === 'true') {
+            addAction(fbUrl, 'https://cdn-icons-png.flaticon.com/512/733/733547.png', 'Facebook');
+          }
+          if (bodyEl.dataset.showGoogle === 'true') {
+            addAction(gUrl, 'https://www.google.com/favicon.ico', 'Google');
+          }
 
           mSearchTd.appendChild(actionsDiv);
           mRow.appendChild(mSearchTd);
@@ -974,6 +1003,20 @@ Mortgage broker"></textarea>
         });
       });
 
+      if (toggleFacebookEl) {
+        toggleFacebookEl.addEventListener('change', () => {
+          updatePlatformVisibility();
+          render(sortEntries(entries));
+        });
+      }
+
+      if (toggleGoogleEl) {
+        toggleGoogleEl.addEventListener('change', () => {
+          updatePlatformVisibility();
+          render(sortEntries(entries));
+        });
+      }
+
       $('#copyShare').addEventListener('click', async () => {
         const shareUrl = setShareUrl();
         try {
@@ -1165,6 +1208,7 @@ Mortgage broker"></textarea>
       meetingDateEl.addEventListener('input', setShareUrl);
 
       function initFromUrl() {
+        updatePlatformVisibility();
         const state = loadStateFromUrl();
         if (state) {
           applyStateToUI(state);
