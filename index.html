@@ -742,7 +742,7 @@ Mortgage broker"></textarea>
       function setShareUrl() {
         updateUrlFromState(getStateFromUI());
         updateMeetingHeading();
-        return shareUrl;
+        return shareEl.value;
       }
 
       function getTodayDateValue() {
@@ -837,6 +837,9 @@ Mortgage broker"></textarea>
           render(readEntriesFromEditor());
         } else {
           hydrateEditorRows(parseListEntries(''));
+        }
+
+        const url = new URL(window.location.href);
         const dateParam = url.searchParams.get('date');
         if (dateParam) {
           meetingDateEl.value = dateParam;
