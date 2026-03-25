@@ -33,12 +33,14 @@
     .entry-table { width: 100%; border-collapse: collapse; margin-top: 12px; }
     .entry-table th, .entry-table td { border-bottom: 1px solid #eee; padding: 8px; vertical-align: middle; }
     .entry-table input[type="text"] { width: 100%; }
-    .entry-table .specific-cell { width: 90px; text-align: center; white-space: nowrap; }
+    .entry-table .specific-cell { width: 90px; text-align: center; }
     .entry-table .actions-cell { width: 88px; text-align: right; }
     .entry-table .remove-row { padding: 8px 10px; }
+    .entry-table tr[data-type="note"] .specific-name,
+    .entry-table tr[data-type="note"] .specific-org { display: none; }
+    .entry-table tr[data-type="note"] .note-only { display: table-cell; }
+    .entry-table tr[data-type="contact"] .note-only { display: none; }
     .entry-actions { margin-top: 12px; }
-    .entry-group { margin-top: 16px; }
-    .entry-group h3 { margin: 0 0 8px; }
 
     .editor-controls { margin: 32px 0; }
     .editor-controls .editor-panel { display: block; }
@@ -266,42 +268,23 @@
         <input id="meetingDate" type="date" />
       </div>
 
-      <div class="entry-group">
-        <h3>Specific requests</h3>
-        <div class="table-wrapper">
-          <table class="entry-table" aria-label="Specific referral requests">
-            <thead>
-              <tr>
-                <th class="specific-cell">Specific</th>
-                <th>Requester</th>
-                <th>Name</th>
-                <th>Organisation</th>
-                <th class="actions-cell">Actions</th>
-              </tr>
-            </thead>
-            <tbody id="specificRows"></tbody>
-          </table>
-        </div>
+      <div class="table-wrapper">
+        <table class="entry-table" aria-label="Referral entry editor">
+          <thead>
+            <tr>
+              <th class="specific-cell">Specific</th>
+              <th>Requester</th>
+              <th class="specific-name">Name</th>
+              <th class="specific-org">Organisation</th>
+              <th class="note-only">General note</th>
+              <th class="actions-cell">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="entryRows"></tbody>
+        </table>
       </div>
-      <div class="entry-group">
-        <h3>General requests</h3>
-        <div class="table-wrapper">
-          <table class="entry-table" aria-label="General referral requests">
-            <thead>
-              <tr>
-                <th class="specific-cell">Specific</th>
-                <th>Requester</th>
-                <th>General note</th>
-                <th class="actions-cell">Actions</th>
-              </tr>
-            </thead>
-            <tbody id="noteRows"></tbody>
-          </table>
-        </div>
-      </div>
-      <div class="entry-actions row">
-        <button id="addSpecificRow" type="button">Add specific row</button>
-        <button id="addNoteRow" type="button">Add general row</button>
+      <div class="entry-actions">
+        <button id="addRow" type="button">Add row</button>
       </div>
 
       <section id="joinProspectsEditor" class="prospects">
@@ -355,14 +338,13 @@ Mortgage broker"></textarea>
     and <a href="https://www.planwithcare.co.uk/" target="_blank" rel="noopener">Plan with Care</a>.
   </div>
 
+  <script src="https://cdn.jsdelivr.net/npm/lz-string@1.5.0/libs/lz-string.min.js"></script>
   <script>
     (function () {
       const $ = (sel) => document.querySelector(sel);
       const bodyEl = document.body;
-      const specificRowsEl = $('#specificRows');
-      const noteRowsEl = $('#noteRows');
-      const addSpecificRowEl = $('#addSpecificRow');
-      const addNoteRowEl = $('#addNoteRow');
+      const entryRowsEl = $('#entryRows');
+      const addRowEl = $('#addRow');
       const meetingNameEl = $('#meetingName');
       const meetingDateEl = $('#meetingDate');
       const meetingHeadingEl = $('#meetingHeading');
@@ -427,16 +409,16 @@ Mortgage broker"></textarea>
         return `${requestorPrefix}${name}${organization ? `, ${organization}` : ''}`;
       }
 
-      function createSpecificRow(entry = { type: 'contact', requestor: '', name: '', organization: '' }) {
+      function createEntryRow(entry = { type: 'contact', requestor: '', name: '', organization: '', note: '' }) {
         const row = document.createElement('tr');
-        row.dataset.type = 'contact';
+        row.dataset.type = entry.type === 'note' ? 'note' : 'contact';
 
         const specificTd = document.createElement('td');
         specificTd.className = 'specific-cell';
         const specificCheckbox = document.createElement('input');
         specificCheckbox.type = 'checkbox';
         specificCheckbox.className = 'is-specific';
-        specificCheckbox.checked = true;
+        specificCheckbox.checked = row.dataset.type === 'contact';
         specificTd.appendChild(specificCheckbox);
         row.appendChild(specificTd);
 
@@ -469,41 +451,8 @@ Mortgage broker"></textarea>
         orgTd.appendChild(orgInput);
         row.appendChild(orgTd);
 
-        const actionsTd = document.createElement('td');
-        actionsTd.className = 'actions-cell';
-        const removeBtn = document.createElement('button');
-        removeBtn.type = 'button';
-        removeBtn.className = 'remove-row';
-        removeBtn.textContent = 'Remove';
-        actionsTd.appendChild(removeBtn);
-        row.appendChild(actionsTd);
-
-        return row;
-      }
-
-      function createNoteRow(entry = { type: 'note', requestor: '', note: '' }) {
-        const row = document.createElement('tr');
-        row.dataset.type = 'note';
-
-        const specificTd = document.createElement('td');
-        specificTd.className = 'specific-cell';
-        const specificCheckbox = document.createElement('input');
-        specificCheckbox.type = 'checkbox';
-        specificCheckbox.className = 'is-specific';
-        specificCheckbox.checked = false;
-        specificTd.appendChild(specificCheckbox);
-        row.appendChild(specificTd);
-
-        const requestorTd = document.createElement('td');
-        const requestorInput = document.createElement('input');
-        requestorInput.type = 'text';
-        requestorInput.className = 'requestor';
-        requestorInput.placeholder = 'Requester';
-        requestorInput.value = entry.requestor || '';
-        requestorTd.appendChild(requestorInput);
-        row.appendChild(requestorTd);
-
         const noteTd = document.createElement('td');
+        noteTd.className = 'note-only';
         const noteInput = document.createElement('input');
         noteInput.type = 'text';
         noteInput.className = 'note';
@@ -525,8 +474,16 @@ Mortgage broker"></textarea>
       }
 
       function readEntriesFromEditor() {
-        const specificEntries = Array.from(specificRowsEl.querySelectorAll('tr')).map((row) => {
+        return Array.from(entryRowsEl.querySelectorAll('tr')).map((row) => {
+          const type = row.dataset.type === 'note' ? 'note' : 'contact';
           const requestor = row.querySelector('.requestor').value.trim();
+          if (type === 'note') {
+            return {
+              type: 'note',
+              requestor,
+              note: row.querySelector('.note').value.trim(),
+            };
+          }
           const name = row.querySelector('.name').value.trim();
           const organization = row.querySelector('.organization').value.trim();
           return {
@@ -536,15 +493,7 @@ Mortgage broker"></textarea>
             organization,
             query: `${name}${organization ? ` ${organization}` : ''}`.trim(),
           };
-        });
-
-        const noteEntries = Array.from(noteRowsEl.querySelectorAll('tr')).map((row) => {
-          const requestor = row.querySelector('.requestor').value.trim();
-          const note = row.querySelector('.note').value.trim();
-          return { type: 'note', requestor, note };
-        });
-
-        return [...specificEntries, ...noteEntries].filter((entry) => {
+        }).filter((entry) => {
           if (entry.type === 'note') {
             return entry.requestor || entry.note;
           }
@@ -553,20 +502,11 @@ Mortgage broker"></textarea>
       }
 
       function hydrateEditorRows(entries) {
-        specificRowsEl.innerHTML = '';
-        noteRowsEl.innerHTML = '';
-        entries.forEach((entry) => {
-          if (entry.type === 'note') {
-            noteRowsEl.appendChild(createNoteRow(entry));
-          } else {
-            specificRowsEl.appendChild(createSpecificRow(entry));
-          }
-        });
-        if (!specificRowsEl.querySelector('tr')) {
-          specificRowsEl.appendChild(createSpecificRow());
-        }
-        if (!noteRowsEl.querySelector('tr')) {
-          noteRowsEl.appendChild(createNoteRow());
+        entryRowsEl.innerHTML = '';
+        if (entries.length) {
+          entries.forEach((entry) => entryRowsEl.appendChild(createEntryRow(entry)));
+        } else {
+          entryRowsEl.appendChild(createEntryRow());
         }
       }
 
@@ -757,39 +697,57 @@ Mortgage broker"></textarea>
         }
       }
 
-      function setShareUrl() {
+      function getStateFromUI() {
         const entries = readEntriesFromEditor();
-        const raw = entries.map(entryToLine).filter(Boolean).join('\n');
+        const list = entries.map(entryToLine).filter(Boolean).join('\n');
         const meetingName = meetingNameEl.value.trim();
         const meetingDate = meetingDateEl.value;
+        const join = joinProspectsEl ? joinProspectsEl.value.trim() : '';
+        return {
+          meeting: meetingName,
+          date: meetingDate,
+          list,
+          join,
+        };
+      }
+
+      function isEmptyState(state) {
+        return !(
+          (state.meeting && state.meeting.trim()) ||
+          (state.date && state.date.trim()) ||
+          (state.list && state.list.trim()) ||
+          (state.join && state.join.trim())
+        );
+      }
+
+      function updateUrlFromState(state) {
+        const meetingDate = meetingDateEl.value || getTodayDateValue();
+        if (!meetingDateEl.value) {
+          meetingDateEl.value = meetingDate;
+        }
         const url = new URL(window.location.href);
-        if (raw) {
-          url.searchParams.set('list', raw.replace(/\r?\n/g, '\n'));
-        } else {
-          url.searchParams.delete('list');
+        if (isEmptyState(state)) {
+          url.hash = '';
+          window.history.replaceState(null, '', url.toString());
+          shareEl.value = url.toString();
+          return;
         }
-        if (meetingName) {
-          url.searchParams.set('meeting', meetingName);
-        } else {
-          url.searchParams.delete('meeting');
-        }
-        if (meetingDate) {
-          url.searchParams.set('date', meetingDate);
-        } else {
-          url.searchParams.delete('date');
-        }
-        if (joinProspectsEl) {
-          const joinRaw = joinProspectsEl.value.trim();
-          if (joinRaw) {
-            url.searchParams.set('join', joinRaw.replace(/\r?\n/g, '\n'));
-          } else {
-            url.searchParams.delete('join');
-          }
-        }
-        url.searchParams.delete('edit');
+        const json = JSON.stringify(state);
+        const compressed = LZString.compressToEncodedURIComponent(json);
+        url.hash = `data=${compressed}`;
+        window.history.replaceState(null, '', url.toString());
         shareEl.value = url.toString();
-        window.history.replaceState(null, '', url);
+      }
+
+      function setShareUrl() {
+        updateUrlFromState(getStateFromUI());
         updateMeetingHeading();
+      }
+
+      function getTodayDateValue() {
+        const today = new Date();
+        const localMidnight = new Date(today.getTime() - (today.getTimezoneOffset() * 60000));
+        return localMidnight.toISOString().slice(0, 10);
       }
 
       function formatMeetingDate(value) {
@@ -836,38 +794,65 @@ Mortgage broker"></textarea>
         }
       }
 
-      function loadFromUrl() {
-        const url = new URL(window.location.href);
-        const listParam = url.searchParams.get('list');
-        hydrateEditorRows(parseListEntries(listParam || ''));
-        if (listParam) {
+      function loadStateFromUrl() {
+        const hash = window.location.hash;
+        if (!hash.startsWith('#data=')) {
+          return null;
+        }
+        const compressed = hash.replace('#data=', '');
+        try {
+          const json = LZString.decompressFromEncodedURIComponent(compressed);
+          if (!json) {
+            return null;
+          }
+          const parsed = JSON.parse(json);
+          if (!parsed || typeof parsed !== 'object') {
+            return null;
+          }
+          return parsed;
+        } catch (e) {
+          console.error('Failed to decode URL data', e);
+          return null;
+        }
+      }
+
+      function applyStateToUI(state) {
+        const list = typeof state.list === 'string' ? state.list : '';
+        const join = typeof state.join === 'string' ? state.join : '';
+        const meeting = typeof state.meeting === 'string' ? state.meeting : '';
+        const date = typeof state.date === 'string' ? state.date : '';
+
+        hydrateEditorRows(parseListEntries(list));
+        if (joinProspectsEl) {
+          joinProspectsEl.value = join;
+        }
+        meetingNameEl.value = meeting;
+        meetingDateEl.value = date;
+      }
+
+      function loadFromUrl(state = loadStateFromUrl()) {
+        if (state) {
+          applyStateToUI(state);
           render(readEntriesFromEditor());
-        }
-        const joinParam = url.searchParams.get('join');
-        if (joinParam && joinProspectsEl) {
-          joinProspectsEl.value = joinParam;
-        }
-        const meetingParam = url.searchParams.get('meeting');
-        if (meetingParam) {
-          meetingNameEl.value = meetingParam;
-        }
+        } else {
+          hydrateEditorRows(parseListEntries(''));
         const dateParam = url.searchParams.get('date');
         if (dateParam) {
           meetingDateEl.value = dateParam;
+        } else if (!meetingDateEl.value) {
+          meetingDateEl.value = getTodayDateValue();
         }
-        const hasList = !!(listParam && listParam.trim());
-        const hasJoin = !!(joinParam && joinParam.trim());
-        const isViewer = (hasList || hasJoin) && !url.searchParams.has('edit');
+
+        const hasList = !!(state && typeof state.list === 'string' && state.list.trim());
+        const hasJoin = !!(state && typeof state.join === 'string' && state.join.trim());
+        const isViewer = hasList || hasJoin;
         bodyEl.dataset.mode = isViewer ? 'viewer' : 'editor';
         meetingNameEl.readOnly = isViewer;
         meetingDateEl.disabled = isViewer;
-        if (addSpecificRowEl) {
-          addSpecificRowEl.disabled = isViewer;
+        if (addRowEl) {
+          addRowEl.disabled = isViewer;
         }
-        if (addNoteRowEl) {
-          addNoteRowEl.disabled = isViewer;
-        }
-        document.querySelectorAll('#specificRows input,#specificRows button,#noteRows input,#noteRows button').forEach((el) => {
+        entryRowsEl.querySelectorAll('input,button').forEach((el) => {
           el.disabled = isViewer;
         });
         if (joinProspectsEl) {
@@ -954,9 +939,18 @@ Mortgage broker"></textarea>
 
       if (enableEditingEl) {
         enableEditingEl.addEventListener('click', () => {
-          const url = new URL(window.location.href);
-          url.searchParams.set('edit', '1');
-          window.location.href = url.toString();
+          bodyEl.dataset.mode = 'editor';
+          meetingNameEl.readOnly = false;
+          meetingDateEl.disabled = false;
+          if (addRowEl) {
+            addRowEl.disabled = false;
+          }
+          entryRowsEl.querySelectorAll('input,button').forEach((el) => {
+            el.disabled = false;
+          });
+          if (joinProspectsEl) {
+            joinProspectsEl.readOnly = false;
+          }
         });
       }
 
@@ -978,45 +972,17 @@ Mortgage broker"></textarea>
         }, 250);
       }
 
-      function wireRowTable(tbodyEl, targetType) {
-        if (!tbodyEl) {
-          return;
-        }
-        tbodyEl.addEventListener('input', scheduleUpdates);
-        tbodyEl.addEventListener('change', (event) => {
+      if (entryRowsEl) {
+        entryRowsEl.addEventListener('input', scheduleUpdates);
+        entryRowsEl.addEventListener('change', (event) => {
           const target = event.target;
           if (target.classList.contains('is-specific')) {
             const row = target.closest('tr');
-            const requestor = row.querySelector('.requestor').value.trim();
-            if (targetType === 'contact' && !target.checked) {
-              const name = row.querySelector('.name').value.trim();
-              const org = row.querySelector('.organization').value.trim();
-              noteRowsEl.appendChild(createNoteRow({
-                type: 'note',
-                requestor,
-                note: `${name}${org ? `, ${org}` : ''}`.trim(),
-              }));
-              row.remove();
-            } else if (targetType === 'note' && target.checked) {
-              const note = row.querySelector('.note').value.trim();
-              specificRowsEl.appendChild(createSpecificRow({
-                type: 'contact',
-                requestor,
-                name: note,
-                organization: '',
-              }));
-              row.remove();
-            }
-            if (!specificRowsEl.querySelector('tr')) {
-              specificRowsEl.appendChild(createSpecificRow());
-            }
-            if (!noteRowsEl.querySelector('tr')) {
-              noteRowsEl.appendChild(createNoteRow());
-            }
+            row.dataset.type = target.checked ? 'contact' : 'note';
             scheduleUpdates();
           }
         });
-        tbodyEl.addEventListener('click', (event) => {
+        entryRowsEl.addEventListener('click', (event) => {
           const target = event.target;
           if (!target.classList.contains('remove-row')) {
             return;
@@ -1026,28 +992,15 @@ Mortgage broker"></textarea>
             return;
           }
           row.remove();
-          if (tbodyEl === specificRowsEl && !specificRowsEl.querySelector('tr')) {
-            specificRowsEl.appendChild(createSpecificRow());
-          }
-          if (tbodyEl === noteRowsEl && !noteRowsEl.querySelector('tr')) {
-            noteRowsEl.appendChild(createNoteRow());
+          if (!entryRowsEl.querySelector('tr')) {
+            entryRowsEl.appendChild(createEntryRow());
           }
           scheduleUpdates();
         });
       }
-
-      wireRowTable(specificRowsEl, 'contact');
-      wireRowTable(noteRowsEl, 'note');
-
-      if (addSpecificRowEl) {
-        addSpecificRowEl.addEventListener('click', () => {
-          specificRowsEl.appendChild(createSpecificRow());
-          scheduleUpdates();
-        });
-      }
-      if (addNoteRowEl) {
-        addNoteRowEl.addEventListener('click', () => {
-          noteRowsEl.appendChild(createNoteRow());
+      if (addRowEl) {
+        addRowEl.addEventListener('click', () => {
+          entryRowsEl.appendChild(createEntryRow());
           scheduleUpdates();
         });
       }
@@ -1058,9 +1011,21 @@ Mortgage broker"></textarea>
       meetingNameEl.addEventListener('input', setShareUrl);
       meetingDateEl.addEventListener('input', setShareUrl);
 
-      loadFromUrl();
-      render(readEntriesFromEditor());
-      renderJoinProspects(getJoinProspects());
+      function initFromUrl() {
+        const state = loadStateFromUrl();
+        if (state) {
+          applyStateToUI(state);
+        }
+        loadFromUrl(state);
+        render(readEntriesFromEditor());
+        renderJoinProspects(getJoinProspects());
+      }
+
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initFromUrl);
+      } else {
+        initFromUrl();
+      }
     })();
   </script>
 </body>
