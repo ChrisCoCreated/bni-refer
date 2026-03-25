@@ -55,6 +55,7 @@
       justify-content: center;
       font-size: 14px;
     }
+    .is-hidden { display: none !important; }
     .table-wrapper + .table-wrapper { margin-top: 16px; }
     .empty-state { color: #666; font-style: italic; }
     .entry-actions { margin-top: 12px; }
@@ -234,7 +235,8 @@
       <label><input id="toggleFacebook" type="checkbox" />Show Facebook</label>
       <label><input id="toggleGoogle" type="checkbox" />Show Google</label>
     </div>
-    <div class="table-wrapper">
+    <h3 id="specificResultsHeading" class="editor-subheading">Specific referrals</h3>
+    <div id="specificResultsWrapper" class="table-wrapper">
       <table id="results" aria-live="polite">
         <thead>
           <tr>
@@ -259,6 +261,18 @@
             </td>
           </tr>
         </tfoot>
+      </table>
+    </div>
+    <h3 id="noteResultsHeading" class="editor-subheading">General notes (not specific)</h3>
+    <div id="noteResultsWrapper" class="table-wrapper">
+      <table id="noteResults" aria-live="polite">
+        <thead>
+          <tr>
+            <th>Requester</th>
+            <th>General note</th>
+          </tr>
+        </thead>
+        <tbody id="noteResultsBody"></tbody>
       </table>
     </div>
 
@@ -294,7 +308,7 @@
         <input id="newRequester" type="text" placeholder="Requester" />
         <input id="newName" type="text" placeholder="Name" />
         <input id="newOrganisation" type="text" placeholder="Organisation" />
-        <input id="newGeneralNote" type="text" placeholder="General note (for not specific)" />
+        <input id="newGeneralNote" type="text" placeholder="General note (for not specific)" class="is-hidden" />
         <button id="addRow" type="button">Add row</button>
       </div>
 
@@ -397,6 +411,11 @@ Mortgage broker"></textarea>
       const meetingDateEl = $('#meetingDate');
       const meetingHeadingEl = $('#meetingHeading');
       const resultsBodyEl = $('#resultsBody');
+      const noteResultsBodyEl = $('#noteResultsBody');
+      const specificResultsWrapperEl = $('#specificResultsWrapper');
+      const noteResultsWrapperEl = $('#noteResultsWrapper');
+      const specificResultsHeadingEl = $('#specificResultsHeading');
+      const noteResultsHeadingEl = $('#noteResultsHeading');
       const shareEl = $('#shareUrl');
       const referralSectionEl = $('#referralSection');
       const openAllRowEl = $('#openAllRow');
@@ -417,6 +436,13 @@ Mortgage broker"></textarea>
       bodyEl.dataset.mode = 'editor';
       bodyEl.dataset.showFacebook = 'false';
       bodyEl.dataset.showGoogle = 'false';
+
+      function updateNewRowMode() {
+        const isSpecific = !!newSpecificEl.checked;
+        newNameEl.classList.toggle('is-hidden', !isSpecific);
+        newOrganisationEl.classList.toggle('is-hidden', !isSpecific);
+        newGeneralNoteEl.classList.toggle('is-hidden', isSpecific);
+      }
 
       function updatePlatformVisibility() {
         const showFacebook = !!(toggleFacebookEl && toggleFacebookEl.checked);
@@ -613,6 +639,8 @@ Mortgage broker"></textarea>
 
       function render(list) {
         resultsBodyEl.innerHTML = '';
+        noteResultsBodyEl.innerHTML = '';
+
         const filtered = list.filter((item) => {
           if (item.type === 'note') {
             const noteText = (item.note || '').trim();
@@ -625,41 +653,10 @@ Mortgage broker"></textarea>
           }
           return false;
         });
-        filtered.forEach((item) => {
-          if (item.type === 'note') {
-            const dRow = document.createElement('tr');
-            dRow.className = 'desktop-row note-row';
-            const requestorTd = document.createElement('td');
-            requestorTd.textContent = item.requestor || '';
-            dRow.appendChild(requestorTd);
+        const contactEntries = filtered.filter((item) => item.type === 'contact');
+        const noteEntries = filtered.filter((item) => item.type === 'note');
 
-            const noteTd = document.createElement('td');
-            noteTd.textContent = item.note || '';
-            dRow.appendChild(noteTd);
-
-            const fbEmptyTd = document.createElement('td');
-            fbEmptyTd.className = 'col-facebook';
-            dRow.appendChild(fbEmptyTd);
-            const gEmptyTd = document.createElement('td');
-            gEmptyTd.className = 'col-google';
-            dRow.appendChild(gEmptyTd);
-
-            resultsBodyEl.appendChild(dRow);
-
-            const mRow = document.createElement('tr');
-            mRow.className = 'mobile-row note-row';
-
-            const mReqTd = document.createElement('td');
-            mReqTd.textContent = item.requestor || '';
-            mRow.appendChild(mReqTd);
-
-            const mNoteTd = document.createElement('td');
-            mNoteTd.textContent = item.note || '';
-            mRow.appendChild(mNoteTd);
-
-            resultsBodyEl.appendChild(mRow);
-            return;
-          }
+        contactEntries.forEach((item) => {
 
           const requestor = item.requestor || '';
           const query = item.query || `${item.name || ''} ${item.organization || ''}`.trim();
@@ -739,8 +736,25 @@ Mortgage broker"></textarea>
 
           resultsBodyEl.appendChild(mRow);
         });
-        const contactCount = filtered.filter((item) => item.type === 'contact').length;
-        referralSectionEl.style.display = filtered.length ? 'block' : 'none';
+
+        noteEntries.forEach((item) => {
+          const row = document.createElement('tr');
+          const requestorTd = document.createElement('td');
+          requestorTd.textContent = item.requestor || '';
+          row.appendChild(requestorTd);
+          const noteTd = document.createElement('td');
+          noteTd.textContent = item.note || '';
+          row.appendChild(noteTd);
+          noteResultsBodyEl.appendChild(row);
+        });
+
+        const contactCount = contactEntries.length;
+        const noteCount = noteEntries.length;
+        referralSectionEl.style.display = (contactCount || noteCount) ? 'block' : 'none';
+        specificResultsWrapperEl.style.display = contactCount ? 'block' : 'none';
+        noteResultsWrapperEl.style.display = noteCount ? 'block' : 'none';
+        specificResultsHeadingEl.style.display = contactCount ? 'block' : 'none';
+        noteResultsHeadingEl.style.display = noteCount ? 'block' : 'none';
         openAllRowEl.style.display = contactCount >= 2 ? 'table-row' : 'none';
       }
 
@@ -1200,6 +1214,9 @@ Mortgage broker"></textarea>
           scheduleUpdates();
         });
       }
+      if (newSpecificEl) {
+        newSpecificEl.addEventListener('change', updateNewRowMode);
+      }
       if (joinProspectsEl) {
         joinProspectsEl.addEventListener('input', scheduleUpdates);
       }
@@ -1209,6 +1226,7 @@ Mortgage broker"></textarea>
 
       function initFromUrl() {
         updatePlatformVisibility();
+        updateNewRowMode();
         const state = loadStateFromUrl();
         if (state) {
           applyStateToUI(state);
