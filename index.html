@@ -721,6 +721,10 @@ Mortgage broker"></textarea>
       }
 
       function updateUrlFromState(state) {
+        const meetingDate = meetingDateEl.value || getTodayDateValue();
+        if (!meetingDateEl.value) {
+          meetingDateEl.value = meetingDate;
+        }
         const url = new URL(window.location.href);
         if (isEmptyState(state)) {
           url.hash = '';
@@ -738,6 +742,12 @@ Mortgage broker"></textarea>
       function setShareUrl() {
         updateUrlFromState(getStateFromUI());
         updateMeetingHeading();
+      }
+
+      function getTodayDateValue() {
+        const today = new Date();
+        const localMidnight = new Date(today.getTime() - (today.getTimezoneOffset() * 60000));
+        return localMidnight.toISOString().slice(0, 10);
       }
 
       function formatMeetingDate(value) {
@@ -826,6 +836,11 @@ Mortgage broker"></textarea>
           render(readEntriesFromEditor());
         } else {
           hydrateEditorRows(parseListEntries(''));
+        const dateParam = url.searchParams.get('date');
+        if (dateParam) {
+          meetingDateEl.value = dateParam;
+        } else if (!meetingDateEl.value) {
+          meetingDateEl.value = getTodayDateValue();
         }
 
         const hasList = !!(state && typeof state.list === 'string' && state.list.trim());
