@@ -54,7 +54,7 @@
     .editor-subheading { margin: 20px 0 4px; }
     .add-row-form {
       display: grid;
-      grid-template-columns: 90px minmax(180px, 1fr) minmax(180px, 1fr) minmax(180px, 1fr) minmax(220px, 1fr) auto;
+      grid-template-columns: 90px minmax(180px, 1fr) minmax(180px, 1fr) minmax(180px, 1fr) auto;
       gap: 8px;
       align-items: center;
       margin: 12px 0 18px;
@@ -75,6 +75,41 @@
       align-items: center;
       justify-content: center;
       font-size: 14px;
+    }
+    input[type="checkbox"] {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 22px;
+      height: 22px;
+      border: 2px solid #9ca3af;
+      border-radius: 6px;
+      background: #fff;
+      display: inline-grid;
+      place-content: center;
+      cursor: pointer;
+      transition: background-color .14s ease, border-color .14s ease, box-shadow .14s ease;
+      vertical-align: middle;
+      margin: 0;
+    }
+    input[type="checkbox"]::before {
+      content: '';
+      width: 6px;
+      height: 11px;
+      border: solid #fff;
+      border-width: 0 2px 2px 0;
+      transform: rotate(45deg) scale(0);
+      transition: transform .12s ease-in-out;
+      margin-bottom: 1px;
+    }
+    input[type="checkbox"]:checked {
+      background: #2563eb;
+      border-color: #2563eb;
+      box-shadow: 0 0 0 2px rgba(37, 99, 235, .18);
+    }
+    input[type="checkbox"]:checked::before { transform: rotate(45deg) scale(1); }
+    input[type="checkbox"]:focus-visible {
+      outline: none;
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, .22);
     }
     .is-hidden { display: none !important; }
     .table-wrapper + .table-wrapper { margin-top: 16px; }
@@ -201,6 +236,14 @@
       #openAllRow { display: none !important; }
       td .actions { margin-top: 8px; gap: 16px; }
       td .actions img.icon { width: 24px; height: 24px; }
+    }
+
+    @media (max-width: 1100px) {
+      .add-row-form,
+      .add-row-form.note-mode {
+        grid-template-columns: 90px minmax(180px, 1fr) minmax(180px, 1fr);
+      }
+      #addRow { grid-column: 1 / -1; justify-self: start; }
     }
 
     @media (max-width: 540px) {
