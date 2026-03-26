@@ -13,12 +13,7 @@
     .meeting-heading { margin: 0 0 16px; font-size: 16px; font-weight: 600; color: #444; }
     textarea { width: 100%; min-height: 160px; padding: 12px; font: inherit; border: 1px solid #ddd; border-radius: 8px; }
     .row { display: flex; gap: 8px; flex-wrap: wrap; margin: 12px 0 20px; }
-    button, input[type="text"], input[type="date"] {
-      font: inherit;
-      padding: 10px 12px;
-      min-height: 44px;
-      border-radius: 8px;
-    }
+    button, input[type="text"], input[type="date"] { font: inherit; padding: 10px 12px; }
     input[type="text"], input[type="date"], textarea {
       transition: border-color .15s ease, box-shadow .15s ease, background-color .15s ease;
     }
@@ -30,7 +25,7 @@
       box-shadow: 0 0 0 3px rgba(79, 70, 229, .14);
       background: #fff;
     }
-    button { cursor: pointer; border: 1px solid #ddd; background: #fafafa; }
+    button { cursor: pointer; border-radius: 8px; border: 1px solid #ddd; background: #fafafa; }
     button:hover { background: #f2f2f2; }
     #shareUrl { flex: 1 1 360px; min-width: 240px; border: 1px solid #ddd; border-radius: 8px; }
     #instructionsViewer { display: none; }
@@ -68,13 +63,12 @@
       grid-template-columns: 90px minmax(180px, 1fr) minmax(360px, 2fr) auto;
     }
     #addRow {
-      padding: 8px 10px;
-      min-height: 44px;
-      justify-self: start;
-      background: #fafafa;
-      color: inherit;
-      border-color: #ddd;
+      background: #4f46e5;
+      border-color: #4338ca;
+      color: #fff;
+      font-weight: 600;
     }
+    #addRow:hover { background: #4338ca; }
     .add-row-form label {
       display: inline-flex;
       gap: 8px;
@@ -357,6 +351,10 @@ Mortgage broker"></textarea>
         <ul class="join-prospects-list" id="joinProspectsListEditor"></ul>
       </section>
     </div>
+    <div class="row share-tools">
+      <button id="openBlank" type="button">Open New</button>
+      <button id="copyBlank" type="button">Share the tool</button>
+    </div>
   </section>
 
   <section id="referralSection" style="display: none;">
@@ -423,11 +421,6 @@ Mortgage broker"></textarea>
     </div>
     <p class="hint">Copy the link and share with the rest of the chapter to save you all time and increase referrals.</p>
   </section>
-
-  <div class="row share-tools">
-    <button id="openBlank" type="button">Open New</button>
-    <button id="copyBlank" type="button">Share the tool</button>
-  </div>
 
   <h3>This tool was developed by Thrive Homecare to make fellow BNI members' lives that bit better</h3>
   <section class="marketing">
