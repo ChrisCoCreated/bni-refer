@@ -13,8 +13,24 @@
     .meeting-heading { margin: 0 0 16px; font-size: 16px; font-weight: 600; color: #444; }
     textarea { width: 100%; min-height: 160px; padding: 12px; font: inherit; border: 1px solid #ddd; border-radius: 8px; }
     .row { display: flex; gap: 8px; flex-wrap: wrap; margin: 12px 0 20px; }
-    button, input[type="text"], input[type="date"] { font: inherit; padding: 10px 12px; }
-    button { cursor: pointer; border-radius: 8px; border: 1px solid #ddd; background: #fafafa; }
+    button, input[type="text"], input[type="date"] {
+      font: inherit;
+      padding: 10px 12px;
+      min-height: 44px;
+      border-radius: 8px;
+    }
+    input[type="text"], input[type="date"], textarea {
+      transition: border-color .15s ease, box-shadow .15s ease, background-color .15s ease;
+    }
+    input[type="text"]:focus-visible,
+    input[type="date"]:focus-visible,
+    textarea:focus-visible {
+      outline: none;
+      border-color: #4f46e5;
+      box-shadow: 0 0 0 3px rgba(79, 70, 229, .14);
+      background: #fff;
+    }
+    button { cursor: pointer; border: 1px solid #ddd; background: #fafafa; }
     button:hover { background: #f2f2f2; }
     #shareUrl { flex: 1 1 360px; min-width: 240px; border: 1px solid #ddd; border-radius: 8px; }
     #instructionsViewer { display: none; }
@@ -43,10 +59,21 @@
     .editor-subheading { margin: 20px 0 4px; }
     .add-row-form {
       display: grid;
-      grid-template-columns: 90px minmax(180px, 1fr) minmax(180px, 1fr) minmax(180px, 1fr) minmax(220px, 1fr) auto;
+      grid-template-columns: 90px minmax(180px, 1fr) minmax(180px, 1fr) minmax(180px, 1fr) auto;
       gap: 8px;
       align-items: center;
       margin: 12px 0 18px;
+    }
+    .add-row-form.note-mode {
+      grid-template-columns: 90px minmax(180px, 1fr) minmax(360px, 2fr) auto;
+    }
+    #addRow {
+      padding: 8px 10px;
+      min-height: 44px;
+      justify-self: start;
+      background: #fafafa;
+      color: inherit;
+      border-color: #ddd;
     }
     .add-row-form label {
       display: inline-flex;
@@ -54,6 +81,41 @@
       align-items: center;
       justify-content: center;
       font-size: 14px;
+    }
+    input[type="checkbox"] {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 22px;
+      height: 22px;
+      border: 2px solid #9ca3af;
+      border-radius: 6px;
+      background: #fff;
+      display: inline-grid;
+      place-content: center;
+      cursor: pointer;
+      transition: background-color .14s ease, border-color .14s ease, box-shadow .14s ease;
+      vertical-align: middle;
+      margin: 0;
+    }
+    input[type="checkbox"]::before {
+      content: '';
+      width: 6px;
+      height: 11px;
+      border: solid #fff;
+      border-width: 0 2px 2px 0;
+      transform: rotate(45deg) scale(0);
+      transition: transform .12s ease-in-out;
+      margin-bottom: 1px;
+    }
+    input[type="checkbox"]:checked {
+      background: #2563eb;
+      border-color: #2563eb;
+      box-shadow: 0 0 0 2px rgba(37, 99, 235, .18);
+    }
+    input[type="checkbox"]:checked::before { transform: rotate(45deg) scale(1); }
+    input[type="checkbox"]:focus-visible {
+      outline: none;
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, .22);
     }
     .is-hidden { display: none !important; }
     .table-wrapper + .table-wrapper { margin-top: 16px; }
@@ -182,6 +244,14 @@
       td .actions img.icon { width: 24px; height: 24px; }
     }
 
+    @media (max-width: 1100px) {
+      .add-row-form,
+      .add-row-form.note-mode {
+        grid-template-columns: 90px minmax(180px, 1fr) minmax(180px, 1fr);
+      }
+      #addRow { grid-column: 1 / -1; justify-self: start; }
+    }
+
     @media (max-width: 540px) {
       .marketing-item {
         grid-template-columns: 96px 1fr;
@@ -227,6 +297,67 @@
   <h1>BNI Referral Contact Generator</h1>
   <p id="instructionsEditor">Use this referral helper during your BNI meeting. Enter each requested contact to generate LinkedIn searches by default, then optionally show Facebook and Google links when needed, launch every search at once with the “Open all” buttons, and share the compiled lookup list with the generated URL.</p>
   <p id="instructionsViewer">Review this shared referral list from your BNI meeting. LinkedIn links are shown by default; use the toggles to include Facebook and Google links when needed.</p>
+
+  <section class="editor-controls">
+    <div class="editor-panel">
+      <h2>How to use</h2>
+      <p class="hint">Add one row per referral request. Tick <em>Specific</em> when searching for a named person and organisation. Untick it for a general note; these are shared as plain text notes (asterisk format in the link).</p>
+
+      <div class="row">
+        <input id="meetingName" type="text" placeholder="Meeting name" />
+        <input id="meetingDate" type="date" />
+      </div>
+
+      <div class="add-row-form" aria-label="Add referral row">
+        <label for="newSpecific"><input id="newSpecific" type="checkbox" checked />Specific</label>
+        <input id="newRequester" type="text" placeholder="Requester" />
+        <input id="newName" type="text" placeholder="Name" />
+        <input id="newOrganisation" type="text" placeholder="Organisation" />
+        <input id="newGeneralNote" type="text" placeholder="General note (for not specific)" class="is-hidden" />
+        <button id="addRow" type="button">Add row</button>
+      </div>
+
+      <h3 class="editor-subheading">Specific referrals</h3>
+      <div class="table-wrapper">
+        <table class="entry-table" aria-label="Specific referral table">
+          <thead>
+            <tr>
+              <th class="specific-cell">Specific</th>
+              <th>Requester</th>
+              <th>Name</th>
+              <th>Organisation</th>
+              <th class="actions-cell">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="specificRows"></tbody>
+        </table>
+      </div>
+
+      <h3 class="editor-subheading">General notes (not specific)</h3>
+      <div class="table-wrapper">
+        <table class="entry-table" aria-label="General notes table">
+          <thead>
+            <tr>
+              <th class="specific-cell">Specific</th>
+              <th>Requester</th>
+              <th>General note</th>
+              <th class="actions-cell">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="noteRows"></tbody>
+        </table>
+      </div>
+
+      <section id="joinProspectsEditor" class="prospects">
+        <h3>Find people to join us</h3>
+        <p class="hint">List the professions or specialties you're hoping to invite so everyone can open LinkedIn searches for their first-degree connections.</p>
+        <textarea id="joinProspects" placeholder="Estate agent
+Family solicitor
+Mortgage broker"></textarea>
+        <ul class="join-prospects-list" id="joinProspectsListEditor"></ul>
+      </section>
+    </div>
+  </section>
 
   <section id="referralSection" style="display: none;">
     <h2>Referral links</h2>
@@ -293,70 +424,10 @@
     <p class="hint">Copy the link and share with the rest of the chapter to save you all time and increase referrals.</p>
   </section>
 
-  <section class="editor-controls">
-    <div class="editor-panel">
-      <h2>How to use</h2>
-      <p class="hint">Add one row per referral request. Tick <em>Specific</em> when searching for a named person and organisation. Untick it for a general note; these are shared as plain text notes (asterisk format in the link).</p>
-
-      <div class="row">
-        <input id="meetingName" type="text" placeholder="Meeting name" />
-        <input id="meetingDate" type="date" />
-      </div>
-
-      <div class="add-row-form" aria-label="Add referral row">
-        <label for="newSpecific"><input id="newSpecific" type="checkbox" checked />Specific</label>
-        <input id="newRequester" type="text" placeholder="Requester" />
-        <input id="newName" type="text" placeholder="Name" />
-        <input id="newOrganisation" type="text" placeholder="Organisation" />
-        <input id="newGeneralNote" type="text" placeholder="General note (for not specific)" class="is-hidden" />
-        <button id="addRow" type="button">Add row</button>
-      </div>
-
-      <h3 class="editor-subheading">Specific referrals</h3>
-      <div class="table-wrapper">
-        <table class="entry-table" aria-label="Specific referral table">
-          <thead>
-            <tr>
-              <th class="specific-cell">Specific</th>
-              <th>Requester</th>
-              <th>Name</th>
-              <th>Organisation</th>
-              <th class="actions-cell">Actions</th>
-            </tr>
-          </thead>
-          <tbody id="specificRows"></tbody>
-        </table>
-      </div>
-
-      <h3 class="editor-subheading">General notes (not specific)</h3>
-      <div class="table-wrapper">
-        <table class="entry-table" aria-label="General notes table">
-          <thead>
-            <tr>
-              <th class="specific-cell">Specific</th>
-              <th>Requester</th>
-              <th>General note</th>
-              <th class="actions-cell">Actions</th>
-            </tr>
-          </thead>
-          <tbody id="noteRows"></tbody>
-        </table>
-      </div>
-
-      <section id="joinProspectsEditor" class="prospects">
-        <h3>Find people to join us</h3>
-        <p class="hint">List the professions or specialties you're hoping to invite so everyone can open LinkedIn searches for their first-degree connections.</p>
-        <textarea id="joinProspects" placeholder="Estate agent
-Family solicitor
-Mortgage broker"></textarea>
-        <ul class="join-prospects-list" id="joinProspectsListEditor"></ul>
-      </section>
-    </div>
-    <div class="row share-tools">
-      <button id="openBlank" type="button">Open New</button>
-      <button id="copyBlank" type="button">Share the tool</button>
-    </div>
-  </section>
+  <div class="row share-tools">
+    <button id="openBlank" type="button">Open New</button>
+    <button id="copyBlank" type="button">Share the tool</button>
+  </div>
 
   <h3>This tool was developed by Thrive Homecare to make fellow BNI members' lives that bit better</h3>
   <section class="marketing">
@@ -430,6 +501,7 @@ Mortgage broker"></textarea>
       const enableEditingEl = $('#enableEditing');
       const joinProspectsEl = $('#joinProspects');
       const joinProspectsViewerSectionEl = $('#joinProspectsViewer');
+      const addRowFormEl = document.querySelector('.add-row-form');
       const joinProspectsLists = Array.from(document.querySelectorAll('.join-prospects-list'));
       let entries = [];
 
@@ -442,6 +514,9 @@ Mortgage broker"></textarea>
         newNameEl.classList.toggle('is-hidden', !isSpecific);
         newOrganisationEl.classList.toggle('is-hidden', !isSpecific);
         newGeneralNoteEl.classList.toggle('is-hidden', isSpecific);
+        if (addRowFormEl) {
+          addRowFormEl.classList.toggle('note-mode', !isSpecific);
+        }
       }
 
       function updatePlatformVisibility() {
@@ -1194,7 +1269,7 @@ Mortgage broker"></textarea>
         noteRowsEl.addEventListener('click', handleEditorClick);
       }
       if (addRowEl) {
-        addRowEl.addEventListener('click', () => {
+        const addNewRow = () => {
           const isSpecific = !!newSpecificEl.checked;
           const requestor = newRequesterEl.value.trim();
           const name = newNameEl.value.trim();
@@ -1215,10 +1290,24 @@ Mortgage broker"></textarea>
           newGeneralNoteEl.value = '';
           renderEditorTables();
           scheduleUpdates();
+        };
+        addRowEl.addEventListener('click', addNewRow);
+        [newRequesterEl, newNameEl, newOrganisationEl, newGeneralNoteEl].forEach((input) => {
+          input.addEventListener('keydown', (event) => {
+            if ((event.metaKey || event.ctrlKey) && event.key === 'Enter') {
+              event.preventDefault();
+              addNewRow();
+            }
+          });
         });
       }
       if (newSpecificEl) {
-        newSpecificEl.addEventListener('change', updateNewRowMode);
+        newSpecificEl.addEventListener('change', () => {
+          if (!newSpecificEl.checked && !newGeneralNoteEl.value.trim()) {
+            newGeneralNoteEl.value = newNameEl.value.trim();
+          }
+          updateNewRowMode();
+        });
       }
       if (joinProspectsEl) {
         joinProspectsEl.addEventListener('input', scheduleUpdates);
