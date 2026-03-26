@@ -14,6 +14,17 @@
     textarea { width: 100%; min-height: 160px; padding: 12px; font: inherit; border: 1px solid #ddd; border-radius: 8px; }
     .row { display: flex; gap: 8px; flex-wrap: wrap; margin: 12px 0 20px; }
     button, input[type="text"], input[type="date"] { font: inherit; padding: 10px 12px; }
+    input[type="text"], input[type="date"], textarea {
+      transition: border-color .15s ease, box-shadow .15s ease, background-color .15s ease;
+    }
+    input[type="text"]:focus-visible,
+    input[type="date"]:focus-visible,
+    textarea:focus-visible {
+      outline: none;
+      border-color: #4f46e5;
+      box-shadow: 0 0 0 3px rgba(79, 70, 229, .14);
+      background: #fff;
+    }
     button { cursor: pointer; border-radius: 8px; border: 1px solid #ddd; background: #fafafa; }
     button:hover { background: #f2f2f2; }
     #shareUrl { flex: 1 1 360px; min-width: 240px; border: 1px solid #ddd; border-radius: 8px; }
@@ -48,6 +59,16 @@
       align-items: center;
       margin: 12px 0 18px;
     }
+    .add-row-form.note-mode {
+      grid-template-columns: 90px minmax(180px, 1fr) minmax(360px, 2fr) auto;
+    }
+    #addRow {
+      background: #4f46e5;
+      border-color: #4338ca;
+      color: #fff;
+      font-weight: 600;
+    }
+    #addRow:hover { background: #4338ca; }
     .add-row-form label {
       display: inline-flex;
       gap: 8px;
@@ -228,71 +249,6 @@
   <p id="instructionsEditor">Use this referral helper during your BNI meeting. Enter each requested contact to generate LinkedIn searches by default, then optionally show Facebook and Google links when needed, launch every search at once with the “Open all” buttons, and share the compiled lookup list with the generated URL.</p>
   <p id="instructionsViewer">Review this shared referral list from your BNI meeting. LinkedIn links are shown by default; use the toggles to include Facebook and Google links when needed.</p>
 
-  <section id="referralSection" style="display: none;">
-    <h2>Referral links</h2>
-    <h3 id="meetingHeading" class="meeting-heading" hidden></h3>
-    <div class="platform-filters" aria-label="Search platform visibility">
-      <label><input id="toggleFacebook" type="checkbox" />Show Facebook</label>
-      <label><input id="toggleGoogle" type="checkbox" />Show Google</label>
-    </div>
-    <h3 id="specificResultsHeading" class="editor-subheading">Specific referrals</h3>
-    <div id="specificResultsWrapper" class="table-wrapper">
-      <table id="results" aria-live="polite">
-        <thead>
-          <tr>
-            <th>Requester</th>
-            <th>LinkedIn</th>
-            <th class="col-facebook">Facebook</th>
-            <th class="col-google">Google</th>
-          </tr>
-        </thead>
-        <tbody id="resultsBody"></tbody>
-        <tfoot>
-          <tr id="openAllRow">
-            <td></td>
-            <td>
-              <button id="openAllLinkedIn"><img class="icon" src="https://cdn-icons-png.flaticon.com/512/174/174857.png" alt="LinkedIn" />Open all in LinkedIn</button>
-            </td>
-            <td class="col-facebook">
-              <button id="openAllFacebook"><img class="icon" src="https://cdn-icons-png.flaticon.com/512/733/733547.png" alt="Facebook" />Open all in Facebook</button>
-            </td>
-            <td class="col-google">
-              <button id="openAllGoogle"><img class="icon" src="https://www.google.com/favicon.ico" alt="Google" />Open all in Google</button>
-            </td>
-          </tr>
-        </tfoot>
-      </table>
-    </div>
-    <h3 id="noteResultsHeading" class="editor-subheading">General notes (not specific)</h3>
-    <div id="noteResultsWrapper" class="table-wrapper">
-      <table id="noteResults" aria-live="polite">
-        <thead>
-          <tr>
-            <th>Requester</th>
-            <th>General note</th>
-          </tr>
-        </thead>
-        <tbody id="noteResultsBody"></tbody>
-      </table>
-    </div>
-
-    <section id="joinProspectsViewer" class="prospects" hidden>
-      <h3>Find people to join us</h3>
-      <p class="hint">Open these LinkedIn searches to invite potential visitors from your first-degree network.</p>
-      <ul class="join-prospects-list" id="joinProspectsListViewer"></ul>
-    </section>
-
-    <div class="row">
-      <button id="copyShare">Copy link to share this list</button>
-      <input id="shareUrl" type="text" readonly placeholder="Shareable URL will appear here" />
-    </div>
-    <div class="viewer-controls row">
-      <p class="hint">Want to make changes? Enable editing to start your own list.</p>
-      <button id="enableEditing" type="button">Enable editing</button>
-    </div>
-    <p class="hint">Copy the link and share with the rest of the chapter to save you all time and increase referrals.</p>
-  </section>
-
   <section class="editor-controls">
     <div class="editor-panel">
       <h2>How to use</h2>
@@ -356,6 +312,71 @@ Mortgage broker"></textarea>
       <button id="openBlank" type="button">Open New</button>
       <button id="copyBlank" type="button">Share the tool</button>
     </div>
+  </section>
+
+  <section id="referralSection" style="display: none;">
+    <h2>Referral links</h2>
+    <h3 id="meetingHeading" class="meeting-heading" hidden></h3>
+    <div class="platform-filters" aria-label="Search platform visibility">
+      <label><input id="toggleFacebook" type="checkbox" />Show Facebook</label>
+      <label><input id="toggleGoogle" type="checkbox" />Show Google</label>
+    </div>
+    <h3 id="specificResultsHeading" class="editor-subheading">Specific referrals</h3>
+    <div id="specificResultsWrapper" class="table-wrapper">
+      <table id="results" aria-live="polite">
+        <thead>
+          <tr>
+            <th>Requester</th>
+            <th>LinkedIn</th>
+            <th class="col-facebook">Facebook</th>
+            <th class="col-google">Google</th>
+          </tr>
+        </thead>
+        <tbody id="resultsBody"></tbody>
+        <tfoot>
+          <tr id="openAllRow">
+            <td></td>
+            <td>
+              <button id="openAllLinkedIn"><img class="icon" src="https://cdn-icons-png.flaticon.com/512/174/174857.png" alt="LinkedIn" />Open all in LinkedIn</button>
+            </td>
+            <td class="col-facebook">
+              <button id="openAllFacebook"><img class="icon" src="https://cdn-icons-png.flaticon.com/512/733/733547.png" alt="Facebook" />Open all in Facebook</button>
+            </td>
+            <td class="col-google">
+              <button id="openAllGoogle"><img class="icon" src="https://www.google.com/favicon.ico" alt="Google" />Open all in Google</button>
+            </td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+    <h3 id="noteResultsHeading" class="editor-subheading">General notes (not specific)</h3>
+    <div id="noteResultsWrapper" class="table-wrapper">
+      <table id="noteResults" aria-live="polite">
+        <thead>
+          <tr>
+            <th>Requester</th>
+            <th>General note</th>
+          </tr>
+        </thead>
+        <tbody id="noteResultsBody"></tbody>
+      </table>
+    </div>
+
+    <section id="joinProspectsViewer" class="prospects" hidden>
+      <h3>Find people to join us</h3>
+      <p class="hint">Open these LinkedIn searches to invite potential visitors from your first-degree network.</p>
+      <ul class="join-prospects-list" id="joinProspectsListViewer"></ul>
+    </section>
+
+    <div class="row">
+      <button id="copyShare">Copy link to share this list</button>
+      <input id="shareUrl" type="text" readonly placeholder="Shareable URL will appear here" />
+    </div>
+    <div class="viewer-controls row">
+      <p class="hint">Want to make changes? Enable editing to start your own list.</p>
+      <button id="enableEditing" type="button">Enable editing</button>
+    </div>
+    <p class="hint">Copy the link and share with the rest of the chapter to save you all time and increase referrals.</p>
   </section>
 
   <h3>This tool was developed by Thrive Homecare to make fellow BNI members' lives that bit better</h3>
@@ -430,6 +451,7 @@ Mortgage broker"></textarea>
       const enableEditingEl = $('#enableEditing');
       const joinProspectsEl = $('#joinProspects');
       const joinProspectsViewerSectionEl = $('#joinProspectsViewer');
+      const addRowFormEl = document.querySelector('.add-row-form');
       const joinProspectsLists = Array.from(document.querySelectorAll('.join-prospects-list'));
       let entries = [];
 
@@ -442,6 +464,9 @@ Mortgage broker"></textarea>
         newNameEl.classList.toggle('is-hidden', !isSpecific);
         newOrganisationEl.classList.toggle('is-hidden', !isSpecific);
         newGeneralNoteEl.classList.toggle('is-hidden', isSpecific);
+        if (addRowFormEl) {
+          addRowFormEl.classList.toggle('note-mode', !isSpecific);
+        }
       }
 
       function updatePlatformVisibility() {
@@ -1194,7 +1219,7 @@ Mortgage broker"></textarea>
         noteRowsEl.addEventListener('click', handleEditorClick);
       }
       if (addRowEl) {
-        addRowEl.addEventListener('click', () => {
+        const addNewRow = () => {
           const isSpecific = !!newSpecificEl.checked;
           const requestor = newRequesterEl.value.trim();
           const name = newNameEl.value.trim();
@@ -1215,10 +1240,24 @@ Mortgage broker"></textarea>
           newGeneralNoteEl.value = '';
           renderEditorTables();
           scheduleUpdates();
+        };
+        addRowEl.addEventListener('click', addNewRow);
+        [newRequesterEl, newNameEl, newOrganisationEl, newGeneralNoteEl].forEach((input) => {
+          input.addEventListener('keydown', (event) => {
+            if ((event.metaKey || event.ctrlKey) && event.key === 'Enter') {
+              event.preventDefault();
+              addNewRow();
+            }
+          });
         });
       }
       if (newSpecificEl) {
-        newSpecificEl.addEventListener('change', updateNewRowMode);
+        newSpecificEl.addEventListener('change', () => {
+          if (!newSpecificEl.checked && !newGeneralNoteEl.value.trim()) {
+            newGeneralNoteEl.value = newNameEl.value.trim();
+          }
+          updateNewRowMode();
+        });
       }
       if (joinProspectsEl) {
         joinProspectsEl.addEventListener('input', scheduleUpdates);
