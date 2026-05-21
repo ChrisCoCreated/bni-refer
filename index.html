@@ -3,1329 +3,362 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>BNI Referral Contact Generator</title>
+  <title>BNI Referral Tools</title>
   <style>
-    :root { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; }
-    * { box-sizing: border-box; }
-    body { margin: 0; padding: 24px; background: #fff; color: #111; }
-    h1 { margin: 0 0 8px }
-    p.hint { margin: 0 0 16px; color: #555 }
-    .meeting-heading { margin: 0 0 16px; font-size: 16px; font-weight: 600; color: #444; }
-    textarea { width: 100%; min-height: 160px; padding: 12px; font: inherit; border: 1px solid #ddd; border-radius: 8px; }
-    .row { display: flex; gap: 8px; flex-wrap: wrap; margin: 12px 0 20px; }
-    button, input[type="text"], input[type="date"] { font: inherit; padding: 10px 12px; }
-    input[type="text"], input[type="date"], textarea {
-      transition: border-color .15s ease, box-shadow .15s ease, background-color .15s ease;
+    :root {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      --bni-red: #dc2626;
+      --text-dark: #1f2937;
+      --text-light: #6b7280;
+      --text-lighter: #9ca3af;
+      --bg-white: #ffffff;
+      --bg-light-grey: #f9fafb;
+      --border-grey: #e5e7eb;
     }
-    input[type="text"]:focus-visible,
-    input[type="date"]:focus-visible,
-    textarea:focus-visible {
-      outline: none;
-      border-color: #4f46e5;
-      box-shadow: 0 0 0 3px rgba(79, 70, 229, .14);
-      background: #fff;
+
+    * {
+      box-sizing: border-box;
     }
-    button { cursor: pointer; border-radius: 8px; border: 1px solid #ddd; background: #fafafa; }
-    button:hover { background: #f2f2f2; }
-    #shareUrl { flex: 1 1 360px; min-width: 240px; border: 1px solid #ddd; border-radius: 8px; }
-    #instructionsViewer { display: none; }
-    body[data-mode="viewer"] #instructionsEditor { display: none; }
-    body[data-mode="viewer"] #instructionsViewer { display: block; }
-    img.icon { width: 16px; height: 16px; vertical-align: middle; margin-right: 4px; }
-    #openAllRow { display: none; }
-    #openAllRow button { width: 100%; }
-    .table-wrapper { width: 100%; overflow-x: auto; }
-    table { width: 100%; border-collapse: collapse; }
-    th, td { padding: 6px 8px; text-align: left; border-bottom: 1px solid #ddd; }
-    tfoot td { border-bottom: none; padding-top: 12px; }
-    td .actions { margin-top: 4px; display: flex; gap: 8px; }
-    td .actions img.icon { margin-right: 0; }
-    .platform-filters { margin: 0 0 12px; display: flex; gap: 16px; flex-wrap: wrap; }
-    .platform-filters label { display: inline-flex; gap: 6px; align-items: center; font-size: 14px; }
-    body[data-show-facebook="false"] .col-facebook { display: none; }
-    body[data-show-google="false"] .col-google { display: none; }
-    .mobile-row { display: none; }
-    .entry-table { width: 100%; border-collapse: collapse; margin-top: 12px; }
-    .entry-table th, .entry-table td { border-bottom: 1px solid #eee; padding: 8px; vertical-align: middle; }
-    .entry-table input[type="text"] { width: 100%; }
-    .entry-table .specific-cell { width: 90px; text-align: center; }
-    .entry-table .actions-cell { width: 88px; text-align: right; }
-    .entry-table .remove-row { padding: 8px 10px; }
-    .editor-subheading { margin: 20px 0 4px; }
-    .add-row-form {
-      display: grid;
-      grid-template-columns: 90px minmax(180px, 1fr) minmax(180px, 1fr) minmax(180px, 1fr) auto;
-      gap: 8px;
-      align-items: center;
-      margin: 12px 0 18px;
+
+    body {
+      margin: 0;
+      padding: 0;
+      background: var(--bg-white);
+      color: var(--text-dark);
     }
-    .add-row-form.note-mode {
-      grid-template-columns: 90px minmax(180px, 1fr) minmax(360px, 2fr) auto;
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 60px 24px;
     }
-    #addRow {
-      background: #4f46e5;
-      border-color: #4338ca;
-      color: #fff;
-      font-weight: 600;
+
+    /* Header */
+    .header {
+      text-align: center;
+      margin-bottom: 60px;
     }
-    #addRow:hover { background: #4338ca; }
-    .add-row-form label {
-      display: inline-flex;
-      gap: 8px;
-      align-items: center;
-      justify-content: center;
-      font-size: 14px;
+
+    .header h1 {
+      font-size: 48px;
+      font-weight: 700;
+      margin: 0 0 16px 0;
+      color: var(--text-dark);
     }
-    input[type="checkbox"] {
-      -webkit-appearance: none;
-      appearance: none;
-      width: 22px;
-      height: 22px;
-      border: 2px solid #9ca3af;
-      border-radius: 6px;
-      background: #fff;
-      display: inline-grid;
-      place-content: center;
-      cursor: pointer;
-      transition: background-color .14s ease, border-color .14s ease, box-shadow .14s ease;
-      vertical-align: middle;
+
+    .header p {
+      font-size: 18px;
+      color: var(--text-light);
       margin: 0;
     }
-    input[type="checkbox"]::before {
-      content: '';
-      width: 6px;
-      height: 11px;
-      border: solid #fff;
-      border-width: 0 2px 2px 0;
-      transform: rotate(45deg) scale(0);
-      transition: transform .12s ease-in-out;
-      margin-bottom: 1px;
-    }
-    input[type="checkbox"]:checked {
-      background: #2563eb;
-      border-color: #2563eb;
-      box-shadow: 0 0 0 2px rgba(37, 99, 235, .18);
-    }
-    input[type="checkbox"]:checked::before { transform: rotate(45deg) scale(1); }
-    input[type="checkbox"]:focus-visible {
-      outline: none;
-      box-shadow: 0 0 0 3px rgba(37, 99, 235, .22);
-    }
-    .is-hidden { display: none !important; }
-    .table-wrapper + .table-wrapper { margin-top: 16px; }
-    .empty-state { color: #666; font-style: italic; }
-    .entry-actions { margin-top: 12px; }
 
-    .editor-controls { margin: 32px 0; }
-    .editor-controls .editor-panel { display: block; }
-    .viewer-controls { display: none; align-items: center; gap: 12px; }
-    .viewer-controls p { margin: 0; }
-
-    body[data-mode="viewer"] .editor-controls .editor-panel { display: none; }
-    body[data-mode="viewer"] .viewer-controls { display: flex; }
-    body[data-mode="editor"] .viewer-controls { display: none; }
-
-    .prospects { margin: 24px 0; }
-    .prospects .hint { margin-bottom: 12px; }
-    #joinProspects { min-height: 120px; margin-top: 12px; }
-    .join-prospects-list {
-      list-style: none;
-      padding: 0;
-      margin: 12px 0 0;
+    /* Main cards grid */
+    .tools-grid {
       display: grid;
-      gap: 8px;
+      grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+      gap: 32px;
+      margin-bottom: 80px;
     }
-    .join-prospects-list li {
-      background: #f5f5f5;
-      padding: 10px 12px;
-      border-radius: 8px;
-      border: 1px solid #eee;
-    }
-    .join-prospects-list a {
-      color: inherit;
+
+    .tool-card {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      padding: 40px;
+      background: var(--bg-light-grey);
+      border-radius: 12px;
+      border: 1px solid var(--border-grey);
+      transition: all 0.2s ease;
       text-decoration: none;
+      color: inherit;
+      cursor: pointer;
+    }
+
+    .tool-card:hover {
+      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.1);
+      transform: translateY(-2px);
+      border-color: var(--bni-red);
+    }
+
+    .tool-icon {
+      font-size: 48px;
+      line-height: 1;
+    }
+
+    .tool-card h2 {
+      font-size: 28px;
+      font-weight: 700;
+      margin: 0;
+      color: var(--text-dark);
+    }
+
+    .tool-card p {
+      font-size: 16px;
+      color: var(--text-light);
+      margin: 0;
+      line-height: 1.5;
+    }
+
+    .tool-card .cta {
+      margin-top: 12px;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 15px;
       font-weight: 600;
+      color: var(--bni-red);
+    }
+
+    .tool-card .cta::after {
+      content: '→';
+      transition: transform 0.2s ease;
+    }
+
+    .tool-card:hover .cta::after {
+      transform: translateX(4px);
+    }
+
+    /* Secondary info section */
+    .secondary-info {
+      background: white;
+      border: 1px solid var(--border-grey);
+      border-radius: 12px;
+      padding: 40px;
+      margin-top: 60px;
+    }
+
+    .secondary-info h3 {
+      font-size: 22px;
+      font-weight: 700;
+      margin: 0 0 24px 0;
+      color: var(--text-dark);
+    }
+
+    .thrive-section {
+      display: grid;
+      grid-template-columns: 140px 1fr;
+      gap: 24px;
+      align-items: start;
+    }
+
+    .thrive-logo {
+      width: 140px;
+      height: 140px;
+      border-radius: 12px;
+      background: var(--bg-light-grey);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+
+    .thrive-logo img {
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain;
+    }
+
+    .thrive-content h4 {
+      font-size: 18px;
+      font-weight: 700;
+      margin: 0 0 8px 0;
+      color: var(--text-dark);
+    }
+
+    .thrive-content p {
+      font-size: 15px;
+      color: var(--text-light);
+      margin: 0 0 12px 0;
+      line-height: 1.6;
+    }
+
+    .thrive-content a {
       display: inline-flex;
       align-items: center;
       gap: 6px;
-    }
-    .join-prospects-list a .icon { margin-right: 0; }
-    .join-prospects-list a:hover,
-    .join-prospects-list a:focus { text-decoration: underline; }
-
-    body[data-mode="editor"] #joinProspectsViewer { display: none; }
-    body[data-mode="viewer"] #joinProspectsEditor { display: none; }
-
-    .marketing { margin: 32px 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 24px; }
-
-    .marketing-item {
-      display: grid;
-      grid-template-columns: 132px 1fr;
-      gap: 16px;
-      align-items: start;
-      background: #f9f9f9;
-      padding: 16px;
-      border-radius: 12px;
-      position: relative;
-      border: 1px solid #eee;
-      transition: box-shadow .18s ease, transform .18s ease;
-      overflow: hidden;
-    }
-    .marketing-item:focus-within,
-    .marketing-item:hover { box-shadow: 0 6px 24px rgba(0,0,0,.08); transform: translateY(-1px); }
-
-    .marketing-item a.card-cover { grid-row: 1 / span 2; grid-column: 1; }
-    .marketing-item img.main {
-      width: 132px;
-      height: 132px;
-      object-fit: cover;
-      border-radius: 8px;
-      display: block;
-      background: #ddd;
-    }
-
-    .marketing-item .content {
-      grid-column: 2;
-      display: grid;
-      gap: 8px;
-      padding-right: 140px; /* room for logo */
-      min-height: 132px;
-    }
-
-    /* clickable text styled like normal text */
-    .lead-link {
-      color: inherit;
-      text-decoration: none;
-      line-height: 1.35;
-      font-size: 20px;
+      font-size: 14px;
       font-weight: 600;
-      display: block;
-    }
-    .lead-link .brand { font-weight: 800; }
-
-    .marketing-item .company-logo {
-      position: absolute;
-      top: 12px;
-      right: 12px;
-      width: 120px;
-      height: 48px;
-      display: grid;
-      place-items: center;
-      border-radius: 999px;
-      background: rgba(255,255,255,.9);
-      box-shadow: 0 0 0 1px rgba(0,0,0,.04) inset;
-      overflow: hidden;
-    }
-    .marketing-item .company-logo img {
-      max-height: 40px;
-      max-width: 110px;
-      object-fit: contain;
-      filter: saturate(.9);
+      color: var(--bni-red);
+      text-decoration: none;
+      transition: color 0.2s ease;
     }
 
-    .footer { margin-top: 24px; color: #666; font-size: 12px; }
+    .thrive-content a:hover {
+      color: #b91c1c;
+    }
+
+    /* Footer */
+    .footer {
+      text-align: center;
+      margin-top: 80px;
+      padding-top: 24px;
+      border-top: 1px solid var(--border-grey);
+      font-size: 13px;
+      color: var(--text-lighter);
+    }
+
+    .footer a {
+      color: var(--text-light);
+      text-decoration: none;
+      transition: color 0.2s ease;
+    }
+
+    .footer a:hover {
+      color: var(--bni-red);
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .container {
+        padding: 40px 20px;
+      }
+
+      .header h1 {
+        font-size: 36px;
+      }
+
+      .header p {
+        font-size: 16px;
+      }
+
+      .tools-grid {
+        gap: 24px;
+        margin-bottom: 60px;
+      }
+
+      .tool-card {
+        padding: 32px;
+        gap: 16px;
+      }
+
+      .tool-icon {
+        font-size: 40px;
+      }
+
+      .tool-card h2 {
+        font-size: 24px;
+      }
+
+      .tool-card p {
+        font-size: 15px;
+      }
+
+      .secondary-info {
+        padding: 32px 24px;
+      }
+
+      .thrive-section {
+        grid-template-columns: 1fr;
+      }
+
+      .thrive-logo {
+        width: 100%;
+        max-width: 120px;
+        height: 120px;
+      }
+    }
 
     @media (max-width: 480px) {
-      body { padding: 16px; }
-      .row { flex-direction: column; align-items: stretch; }
-      .row > * { width: 100%; }
-      #shareUrl { flex: 1 1 auto; min-width: 0; }
-      #results thead { display: none; }
-      #results .desktop-row { display: none; }
-      #results .mobile-row { display: table-row; }
-      #openAllRow { display: none !important; }
-      td .actions { margin-top: 8px; gap: 16px; }
-      td .actions img.icon { width: 24px; height: 24px; }
-    }
+      .container {
+        padding: 32px 16px;
+      }
 
-    @media (max-width: 1100px) {
-      .add-row-form,
-      .add-row-form.note-mode {
-        grid-template-columns: 90px minmax(180px, 1fr) minmax(180px, 1fr);
+      .header h1 {
+        font-size: 28px;
       }
-      #addRow { grid-column: 1 / -1; justify-self: start; }
-    }
 
-    @media (max-width: 540px) {
-      .marketing-item {
-        grid-template-columns: 96px 1fr;
-        grid-template-rows: auto auto;
-        padding-bottom: 16px;
+      .header p {
+        font-size: 14px;
       }
-      .marketing-item a.card-cover {
-        grid-row: 1 / span 2;
-        grid-column: 1;
-      }
-      .marketing-item img.main {
-        width: 96px;
-        height: 96px;
-      }
-      .marketing-item .content {
-        grid-column: 2;
-        grid-row: 1;
-        padding-right: 0;
-        min-height: 0;
-      }
-      .marketing-item .company-logo {
-        position: static;
-        grid-column: 2;
-        grid-row: 2;
-        margin-top: 8px;
-        width: 100px;
-        height: 44px;
-        justify-self: end;
-      }
-      .marketing-item .company-logo img {
-        max-height: 36px;
-        max-width: 92px;
-      }
-      .lead-link { font-size: 18px; }
-    }
 
-    @media (prefers-reduced-motion: reduce) {
-      .marketing-item { transition: none; }
+      .tools-grid {
+        grid-template-columns: 1fr;
+        gap: 20px;
+      }
+
+      .tool-card {
+        padding: 24px;
+        gap: 12px;
+      }
+
+      .tool-card h2 {
+        font-size: 22px;
+      }
+
+      .tool-card p {
+        font-size: 14px;
+      }
+
+      .tool-icon {
+        font-size: 36px;
+      }
+
+      .secondary-info {
+        padding: 24px;
+        margin-top: 40px;
+      }
+
+      .secondary-info h3 {
+        font-size: 18px;
+      }
+
+      .thrive-content h4 {
+        font-size: 16px;
+      }
+
+      .thrive-content p {
+        font-size: 14px;
+      }
     }
   </style>
 </head>
 <body>
-  <h1>BNI Referral Contact Generator</h1>
-  <p id="instructionsEditor">Use this referral helper during your BNI meeting. Enter each requested contact to generate LinkedIn searches by default, then optionally show Facebook and Google links when needed, launch every search at once with the “Open all” buttons, and share the compiled lookup list with the generated URL.</p>
-  <p id="instructionsViewer">Review this shared referral list from your BNI meeting. LinkedIn links are shown by default; use the toggles to include Facebook and Google links when needed.</p>
+  <div class="container">
+    <!-- Header -->
+    <div class="header">
+      <h1>BNI Referral Tools</h1>
+      <p>Make the most of your BNI membership with streamlined referral solutions</p>
+    </div>
 
-  <section class="editor-controls">
-    <div class="editor-panel">
-      <h2>How to use</h2>
-      <p class="hint">Add one row per referral request. Tick <em>Specific</em> when searching for a named person and organisation. Untick it for a general note; these are shared as plain text notes (asterisk format in the link).</p>
+    <!-- Main Tools Grid -->
+    <div class="tools-grid">
+      <!-- Referral Contact Generator -->
+      <a href="contact-generator.html" class="tool-card">
+        <div class="tool-icon">📋</div>
+        <h2>Referral Contact Generator</h2>
+        <p>Capture referral requests from your BNI meeting and generate search links for LinkedIn, Facebook and Google.</p>
+        <div class="cta">Open tool</div>
+      </a>
 
-      <div class="row">
-        <input id="meetingName" type="text" placeholder="Meeting name" />
-        <input id="meetingDate" type="date" />
+      <!-- Member Presenter -->
+      <a href="presenter.html" class="tool-card">
+        <div class="tool-icon">🎬</div>
+        <h2>Member Presenter</h2>
+        <p>Display BNI members one by one with their ideal referral profiles. Perfect for virtual or in-person presentations.</p>
+        <div class="cta">Open tool</div>
+      </a>
+    </div>
+
+    <!-- Secondary Info - About Thrive Homecare -->
+    <div class="secondary-info">
+      <h3>About the creator</h3>
+      <div class="thrive-section">
+        <div class="thrive-logo">
+          <img src="https://static.wixstatic.com/media/3cbab2_a584714b048842648b34615dd1dc792a~mv2.png/v1/fill/w_478,h_240,al_c,q_85,usm_0.66_1.00_0.01,enc_avif,quality_auto/thrive-logo.png" alt="Thrive Homecare" />
+        </div>
+        <div class="thrive-content">
+          <h4>Thrive Homecare</h4>
+          <p>These tools were developed by <strong>Thrive Homecare</strong> to make fellow BNI members' lives that bit better. We provide compassionate homecare services for elderly people in the South East of England, helping them maintain independence and peace of mind for their families.</p>
+          <a href="https://thrivehomecare.co.uk" target="_blank" rel="noopener">Visit Thrive Homecare →</a>
+        </div>
       </div>
-
-      <div class="add-row-form" aria-label="Add referral row">
-        <label for="newSpecific"><input id="newSpecific" type="checkbox" checked />Specific</label>
-        <input id="newRequester" type="text" placeholder="Requester" />
-        <input id="newName" type="text" placeholder="Name" />
-        <input id="newOrganisation" type="text" placeholder="Organisation" />
-        <input id="newGeneralNote" type="text" placeholder="General note (for not specific)" class="is-hidden" />
-        <button id="addRow" type="button">Add row</button>
-      </div>
-
-      <h3 class="editor-subheading">Specific referrals</h3>
-      <div class="table-wrapper">
-        <table class="entry-table" aria-label="Specific referral table">
-          <thead>
-            <tr>
-              <th class="specific-cell">Specific</th>
-              <th>Requester</th>
-              <th>Name</th>
-              <th>Organisation</th>
-              <th class="actions-cell">Actions</th>
-            </tr>
-          </thead>
-          <tbody id="specificRows"></tbody>
-        </table>
-      </div>
-
-      <h3 class="editor-subheading">General Referals</h3>
-      <div class="table-wrapper">
-        <table class="entry-table" aria-label="General notes table">
-          <thead>
-            <tr>
-              <th class="specific-cell">Specific</th>
-              <th>Requester</th>
-              <th>General note</th>
-              <th class="actions-cell">Actions</th>
-            </tr>
-          </thead>
-          <tbody id="noteRows"></tbody>
-        </table>
-      </div>
-
-      <section id="joinProspectsEditor" class="prospects">
-        <h3>Find people to join us</h3>
-        <p class="hint">List the professions or specialties you're hoping to invite so everyone can open LinkedIn searches for their first-degree connections.</p>
-        <textarea id="joinProspects" placeholder="Estate agent
-Family solicitor
-Mortgage broker"></textarea>
-        <ul class="join-prospects-list" id="joinProspectsListEditor"></ul>
-      </section>
-    </div>
-  </section>
-
-  <section id="referralSection" style="display: none;">
-    <h2>Referral links</h2>
-    <h3 id="meetingHeading" class="meeting-heading" hidden></h3>
-    <div class="platform-filters" aria-label="Search platform visibility">
-      <label><input id="toggleFacebook" type="checkbox" />Show Facebook</label>
-      <label><input id="toggleGoogle" type="checkbox" />Show Google</label>
-    </div>
-    <h3 id="specificResultsHeading" class="editor-subheading">Specific referrals</h3>
-    <div id="specificResultsWrapper" class="table-wrapper">
-      <table id="results" aria-live="polite">
-        <thead>
-          <tr>
-            <th>Requester</th>
-            <th>LinkedIn</th>
-            <th class="col-facebook">Facebook</th>
-            <th class="col-google">Google</th>
-          </tr>
-        </thead>
-        <tbody id="resultsBody"></tbody>
-        <tfoot>
-          <tr id="openAllRow">
-            <td></td>
-            <td>
-              <button id="openAllLinkedIn"><img class="icon" src="https://cdn-icons-png.flaticon.com/512/174/174857.png" alt="LinkedIn" />Open all in LinkedIn</button>
-            </td>
-            <td class="col-facebook">
-              <button id="openAllFacebook"><img class="icon" src="https://cdn-icons-png.flaticon.com/512/733/733547.png" alt="Facebook" />Open all in Facebook</button>
-            </td>
-            <td class="col-google">
-              <button id="openAllGoogle"><img class="icon" src="https://www.google.com/favicon.ico" alt="Google" />Open all in Google</button>
-            </td>
-          </tr>
-        </tfoot>
-      </table>
-    </div>
-    <h3 id="noteResultsHeading" class="editor-subheading">General Referals</h3>
-    <div id="noteResultsWrapper" class="table-wrapper">
-      <table id="noteResults" aria-live="polite">
-        <thead>
-          <tr>
-            <th>Requester</th>
-            <th>General note</th>
-          </tr>
-        </thead>
-        <tbody id="noteResultsBody"></tbody>
-      </table>
     </div>
 
-    <section id="joinProspectsViewer" class="prospects" hidden>
-      <h3>Find people to join us</h3>
-      <p class="hint">Open these LinkedIn searches to invite potential visitors from your first-degree network.</p>
-      <ul class="join-prospects-list" id="joinProspectsListViewer"></ul>
-    </section>
-
-    <div class="row">
-      <button id="copyShare">Copy link to share this list</button>
-      <input id="shareUrl" type="text" readonly placeholder="Shareable URL will appear here" />
+    <!-- Footer -->
+    <div class="footer">
+      <p>Built with referrals in mind by <a href="https://bnikent.co.uk/en-GB/memberdetails?encryptedMemberId=Q88w1PE3FMylGImDTiEfrQ%3D%3D&cmsv3=true&name=Chris+Gage" target="_blank" rel="noopener">Chris Gage</a> and <a href="https://www.planwithcare.co.uk/" target="_blank" rel="noopener">Plan with Care</a>.</p>
     </div>
-    <div class="viewer-controls row">
-      <p class="hint">Want to make changes? Enable editing to start your own list.</p>
-      <button id="enableEditing" type="button">Enable editing</button>
-    </div>
-    <p class="hint">Copy the link and share with the rest of the chapter to save you all time and increase referrals.</p>
-  </section>
-
-  <div class="row share-tools">
-    <button id="openBlank" type="button">Open New</button>
-    <button id="copyBlank" type="button">Share the tool</button>
   </div>
-  <h3>This tool was developed by Thrive Homecare to make fellow BNI members' lives that bit better</h3>
-  <section class="marketing">
-    <div class="marketing-item" tabindex="0">
-      <a class="card-cover" href="https://thrivehomecare.co.uk" target="_blank" rel="noopener">
-        <img class="main" loading="lazy" src="https://static.wixstatic.com/media/3cbab2_e5798e2104364d30aedf1051ff960d33~mv2.png/v1/fill/w_499,h_896,fp_0.62_0.31,q_90,enc_avif,quality_auto/d22m7f6j9drmc0cmyn6b9js9bg-0.png" alt="Thrive Homecare" />
-      </a>
-      <div class="content">
-        <a href="https://thrivehomecare.co.uk" class="lead-link" target="_blank" rel="noopener">
-          Helping your parents thrive in the south east of England, and giving you peace of mind — <span class="brand">Thrive Homecare</span>.
-        </a>
-      </div>
-      <a href="https://thrivehomecare.co.uk" target="_blank" rel="noopener" class="company-logo" aria-label="Visit Thrive Homecare">
-        <img loading="lazy" src="https://static.wixstatic.com/media/3cbab2_a584714b048842648b34615dd1dc792a~mv2.png/v1/fill/w_478,h_240,al_c,q_85,usm_0.66_1.00_0.01,enc_avif,quality_auto/thrive-logo-CutOut.png" alt="Thrive Homecare logo" />
-      </a>
-    </div>
-
-    <div class="marketing-item" tabindex="0">
-      <a class="card-cover" href="https://www.planwithcare.co.uk/" target="_blank" rel="noopener">
-        <img class="main" loading="lazy" src="https://static.wixstatic.com/media/bb55db_75d182c6523943fa97eebe5534a1eac8~mv2.jpg/v1/fill/w_378,h_638,fp_0.50_0.50,q_80,enc_avif,quality_auto/bb55db_75d182c6523943fa97eebe5534a1eac8~mv2.jpg" alt="Plan with Care" />
-      </a>
-      <div class="content">
-        <a href="https://www.planwithcare.co.uk/" class="lead-link" target="_blank" rel="noopener">
-          Health and Welfare expertise and management for solicitors, reducing non-billable time and stress, at no cost to you or your clients — <span class="brand">Plan with Care</span>.
-        </a>
-      </div>
-      <a href="https://www.planwithcare.co.uk/" target="_blank" rel="noopener" class="company-logo" aria-label="Visit Plan with Care">
-        <img loading="lazy" src="https://static.wixstatic.com/media/bb55db_45b2cd200703427f91b1721083529c35~mv2.png/v1/fill/w_208,h_158,al_c,q_85,usm_0.66_1.00_0.01,enc_avif,quality_auto/Planwithcare%20logo%20ACTUAL.png" alt="Plan with Care logo" />
-      </a>
-    </div>
-  </section>
-
-  <div class="footer">
-    Built with referrals in mind by <a href="https://bnikent.co.uk/en-GB/memberdetails?encryptedMemberId=Q88w1PE3FMylGImDTiEfrQ%3D%3D&cmsv3=true&name=Chris+Gage" target="_blank" rel="noopener">Chris Gage</a>, a member of the <a href="https://bnikent.co.uk/en-GB/chapterdetail?chapterId=%2By1kEvGDBwVXevV5lVxbag%3D%3D&name=Online%20Canterbury" target="_blank" rel="noopener">Online Canterbury Chapter</a>, Founder of <a href="https://thrivehomecare.co.uk" target="_blank" rel="noopener">Thrive Homecare</a>,
-    and <a href="https://www.planwithcare.co.uk/" target="_blank" rel="noopener">Plan with Care</a>.
-  </div>
-
-  <script src="https://cdn.jsdelivr.net/npm/lz-string@1.5.0/libs/lz-string.min.js"></script>
-  <script>
-    (function () {
-      const $ = (sel) => document.querySelector(sel);
-      const bodyEl = document.body;
-      const specificRowsEl = $('#specificRows');
-      const noteRowsEl = $('#noteRows');
-      const addRowEl = $('#addRow');
-      const newSpecificEl = $('#newSpecific');
-      const newRequesterEl = $('#newRequester');
-      const newNameEl = $('#newName');
-      const newOrganisationEl = $('#newOrganisation');
-      const newGeneralNoteEl = $('#newGeneralNote');
-      const meetingNameEl = $('#meetingName');
-      const meetingDateEl = $('#meetingDate');
-      const meetingHeadingEl = $('#meetingHeading');
-      const resultsBodyEl = $('#resultsBody');
-      const noteResultsBodyEl = $('#noteResultsBody');
-      const specificResultsWrapperEl = $('#specificResultsWrapper');
-      const noteResultsWrapperEl = $('#noteResultsWrapper');
-      const specificResultsHeadingEl = $('#specificResultsHeading');
-      const noteResultsHeadingEl = $('#noteResultsHeading');
-      const shareEl = $('#shareUrl');
-      const referralSectionEl = $('#referralSection');
-      const openAllRowEl = $('#openAllRow');
-      const openAllLinkedInEl = $('#openAllLinkedIn');
-      const openAllFacebookEl = $('#openAllFacebook');
-      const openAllGoogleEl = $('#openAllGoogle');
-      const toggleFacebookEl = $('#toggleFacebook');
-      const toggleGoogleEl = $('#toggleGoogle');
-      const openBlankEl = $('#openBlank');
-      const copyBlankEl = $('#copyBlank');
-      const emailBlankEl = $('#emailBlank');
-      const enableEditingEl = $('#enableEditing');
-      const joinProspectsEl = $('#joinProspects');
-      const joinProspectsViewerSectionEl = $('#joinProspectsViewer');
-      const addRowFormEl = document.querySelector('.add-row-form');
-      const joinProspectsLists = Array.from(document.querySelectorAll('.join-prospects-list'));
-      let entries = [];
-
-      bodyEl.dataset.mode = 'editor';
-      bodyEl.dataset.showFacebook = 'false';
-      bodyEl.dataset.showGoogle = 'false';
-
-      function updateNewRowMode() {
-        const isSpecific = !!newSpecificEl.checked;
-        newNameEl.classList.toggle('is-hidden', !isSpecific);
-        newOrganisationEl.classList.toggle('is-hidden', !isSpecific);
-        newGeneralNoteEl.classList.toggle('is-hidden', isSpecific);
-        if (addRowFormEl) {
-          addRowFormEl.classList.toggle('note-mode', !isSpecific);
-        }
-      }
-
-      function updatePlatformVisibility() {
-        const showFacebook = !!(toggleFacebookEl && toggleFacebookEl.checked);
-        const showGoogle = !!(toggleGoogleEl && toggleGoogleEl.checked);
-        bodyEl.dataset.showFacebook = showFacebook ? 'true' : 'false';
-        bodyEl.dataset.showGoogle = showGoogle ? 'true' : 'false';
-      }
-
-      function parseListEntries(raw) {
-        if (!raw) {
-          return [];
-        }
-        return raw.split(/\r?\n/).map((line) => {
-          const trimmed = line.trim();
-          if (!trimmed) {
-            return null;
-          }
-          if (trimmed.startsWith('*')) {
-            const noteBody = trimmed.slice(1).trim();
-            const [beforeColon, afterColon] = noteBody.split(':', 2);
-            if (afterColon === undefined) {
-              return { type: 'note', requestor: '', note: beforeColon.trim() };
-            }
-            return { type: 'note', requestor: beforeColon.trim(), note: afterColon.trim() };
-          }
-          const [requestorPart, queryPart] = line.split(':', 2);
-          const requestor = queryPart === undefined ? '' : requestorPart.trim();
-          const query = queryPart === undefined ? requestorPart.trim() : queryPart.trim();
-          const [name, ...orgRest] = query.split(',');
-          return {
-            type: 'contact',
-            requestor,
-            name: (name || '').trim(),
-            organization: orgRest.join(',').trim(),
-          };
-        }).filter(Boolean);
-      }
-
-      function entryToLine(entry) {
-        const requestorPrefix = entry.requestor ? `${entry.requestor}: ` : '';
-        if (entry.type === 'note') {
-          const note = (entry.note || '').trim();
-          return note ? `*${requestorPrefix}${note}` : '';
-        }
-        const name = (entry.name || '').trim();
-        const organization = (entry.organization || '').trim();
-        if (!name && !organization) {
-          return '';
-        }
-        return `${requestorPrefix}${name}${organization ? `, ${organization}` : ''}`;
-      }
-
-      function createContactRow(entry = { type: 'contact', requestor: '', name: '', organization: '' }) {
-        const row = document.createElement('tr');
-        row.dataset.type = 'contact';
-
-        const specificTd = document.createElement('td');
-        specificTd.className = 'specific-cell';
-        const specificCheckbox = document.createElement('input');
-        specificCheckbox.type = 'checkbox';
-        specificCheckbox.className = 'is-specific';
-        specificCheckbox.checked = true;
-        specificTd.appendChild(specificCheckbox);
-        row.appendChild(specificTd);
-
-        const requestorTd = document.createElement('td');
-        const requestorInput = document.createElement('input');
-        requestorInput.type = 'text';
-        requestorInput.className = 'requestor';
-        requestorInput.placeholder = 'Requester';
-        requestorInput.value = entry.requestor || '';
-        requestorTd.appendChild(requestorInput);
-        row.appendChild(requestorTd);
-
-        const nameTd = document.createElement('td');
-        nameTd.className = 'specific-name';
-        const nameInput = document.createElement('input');
-        nameInput.type = 'text';
-        nameInput.className = 'name';
-        nameInput.placeholder = 'Name';
-        nameInput.value = entry.name || '';
-        nameTd.appendChild(nameInput);
-        row.appendChild(nameTd);
-
-        const orgTd = document.createElement('td');
-        orgTd.className = 'specific-org';
-        const orgInput = document.createElement('input');
-        orgInput.type = 'text';
-        orgInput.className = 'organization';
-        orgInput.placeholder = 'Organisation';
-        orgInput.value = entry.organization || '';
-        orgTd.appendChild(orgInput);
-        row.appendChild(orgTd);
-
-        const actionsTd = document.createElement('td');
-        actionsTd.className = 'actions-cell';
-        const removeBtn = document.createElement('button');
-        removeBtn.type = 'button';
-        removeBtn.className = 'remove-row';
-        removeBtn.textContent = 'Remove';
-        actionsTd.appendChild(removeBtn);
-        row.appendChild(actionsTd);
-
-        return row;
-      }
-
-      function createNoteRow(entry = { type: 'note', requestor: '', note: '' }) {
-        const row = document.createElement('tr');
-        row.dataset.type = 'note';
-
-        const specificTd = document.createElement('td');
-        specificTd.className = 'specific-cell';
-        const specificCheckbox = document.createElement('input');
-        specificCheckbox.type = 'checkbox';
-        specificCheckbox.className = 'is-specific';
-        specificCheckbox.checked = false;
-        specificTd.appendChild(specificCheckbox);
-        row.appendChild(specificTd);
-
-        const requestorTd = document.createElement('td');
-        const requestorInput = document.createElement('input');
-        requestorInput.type = 'text';
-        requestorInput.className = 'requestor';
-        requestorInput.placeholder = 'Requester';
-        requestorInput.value = entry.requestor || '';
-        requestorTd.appendChild(requestorInput);
-        row.appendChild(requestorTd);
-
-        const noteTd = document.createElement('td');
-        const noteInput = document.createElement('input');
-        noteInput.type = 'text';
-        noteInput.className = 'note';
-        noteInput.placeholder = 'General note';
-        noteInput.value = entry.note || '';
-        noteTd.appendChild(noteInput);
-        row.appendChild(noteTd);
-
-        const actionsTd = document.createElement('td');
-        actionsTd.className = 'actions-cell';
-        const removeBtn = document.createElement('button');
-        removeBtn.type = 'button';
-        removeBtn.className = 'remove-row';
-        removeBtn.textContent = 'Remove';
-        actionsTd.appendChild(removeBtn);
-        row.appendChild(actionsTd);
-        return row;
-      }
-
-      function sortEntries(list) {
-        return [...list].sort((a, b) => (a.requestor || '').localeCompare((b.requestor || ''), undefined, { sensitivity: 'base' }));
-      }
-
-      function renderEditorTables() {
-        const specificEntries = sortEntries(entries.filter((entry) => entry.type === 'contact'));
-        const noteEntries = sortEntries(entries.filter((entry) => entry.type === 'note'));
-        specificRowsEl.innerHTML = '';
-        noteRowsEl.innerHTML = '';
-
-        if (!specificEntries.length) {
-          const row = document.createElement('tr');
-          row.innerHTML = '<td colspan="5" class="empty-state">No specific referrals yet.</td>';
-          specificRowsEl.appendChild(row);
-        } else {
-          specificEntries.forEach((entry, index) => {
-            const row = createContactRow(entry);
-            row.dataset.entryId = String(entries.indexOf(entry));
-            row.dataset.displayIndex = String(index);
-            specificRowsEl.appendChild(row);
-          });
-        }
-
-        if (!noteEntries.length) {
-          const row = document.createElement('tr');
-          row.innerHTML = '<td colspan="4" class="empty-state">No general notes yet.</td>';
-          noteRowsEl.appendChild(row);
-        } else {
-          noteEntries.forEach((entry, index) => {
-            const row = createNoteRow(entry);
-            row.dataset.entryId = String(entries.indexOf(entry));
-            row.dataset.displayIndex = String(index);
-            noteRowsEl.appendChild(row);
-          });
-        }
-      }
-
-      function searchUrls(q) {
-        const label = q.trim();
-        const clean = label.replace(/\s+/g, ' ').replace(/\s*,\s*/g, ' ');
-        const liUrl = 'https://www.linkedin.com/search/results/all?keywords=' + encodeURIComponent(clean);
-        const fbUrl = 'https://www.facebook.com/search/top?q=' + encodeURIComponent(clean);
-        const gUrl = 'https://www.google.com/search?q=' + encodeURIComponent(clean);
-        return { label, liUrl, fbUrl, gUrl };
-      }
-
-      function render(list) {
-        resultsBodyEl.innerHTML = '';
-        noteResultsBodyEl.innerHTML = '';
-
-        const filtered = list.filter((item) => {
-          if (item.type === 'note') {
-            const noteText = (item.note || '').trim();
-            const requestorText = (item.requestor || '').trim();
-            return noteText || requestorText;
-          }
-          if (item.type === 'contact') {
-            const query = item.query || `${item.name || ''} ${item.organization || ''}`.trim();
-            return query.trim();
-          }
-          return false;
-        });
-        const contactEntries = filtered.filter((item) => item.type === 'contact');
-        const noteEntries = filtered.filter((item) => item.type === 'note');
-
-        contactEntries.forEach((item) => {
-
-          const requestor = item.requestor || '';
-          const query = item.query || `${item.name || ''} ${item.organization || ''}`.trim();
-          const { label, liUrl, fbUrl, gUrl } = searchUrls(query);
-
-          // desktop row
-          const dRow = document.createElement('tr');
-          dRow.className = 'desktop-row';
-
-          const dReqTd = document.createElement('td');
-          dReqTd.textContent = requestor;
-          dRow.appendChild(dReqTd);
-
-          function createCell(url, src, alt, className) {
-            const td = document.createElement('td');
-            if (className) {
-              td.className = className;
-            }
-            const a = document.createElement('a');
-            a.href = url;
-            a.target = '_blank';
-            a.rel = 'noopener';
-            const img = document.createElement('img');
-            img.src = src;
-            img.alt = alt;
-            img.className = 'icon';
-            a.appendChild(img);
-            a.appendChild(document.createTextNode(label));
-            td.appendChild(a);
-            return td;
-          }
-
-          dRow.appendChild(createCell(liUrl, 'https://cdn-icons-png.flaticon.com/512/174/174857.png', 'LinkedIn'));
-          dRow.appendChild(createCell(fbUrl, 'https://cdn-icons-png.flaticon.com/512/733/733547.png', 'Facebook', 'col-facebook'));
-          dRow.appendChild(createCell(gUrl, 'https://www.google.com/favicon.ico', 'Google', 'col-google'));
-          resultsBodyEl.appendChild(dRow);
-
-          // mobile row
-          const mRow = document.createElement('tr');
-          mRow.className = 'mobile-row';
-
-          const mReqTd = document.createElement('td');
-          mReqTd.textContent = requestor;
-          mRow.appendChild(mReqTd);
-
-          const mSearchTd = document.createElement('td');
-          const nameDiv = document.createElement('div');
-          nameDiv.textContent = label;
-          mSearchTd.appendChild(nameDiv);
-
-          const actionsDiv = document.createElement('div');
-          actionsDiv.className = 'actions';
-
-          function addAction(url, src, alt) {
-            const a = document.createElement('a');
-            a.href = url;
-            a.target = '_blank';
-            a.rel = 'noopener';
-            const img = document.createElement('img');
-            img.src = src;
-            img.alt = alt;
-            img.className = 'icon';
-            a.appendChild(img);
-            actionsDiv.appendChild(a);
-          }
-
-          addAction(liUrl, 'https://cdn-icons-png.flaticon.com/512/174/174857.png', 'LinkedIn');
-          if (bodyEl.dataset.showFacebook === 'true') {
-            addAction(fbUrl, 'https://cdn-icons-png.flaticon.com/512/733/733547.png', 'Facebook');
-          }
-          if (bodyEl.dataset.showGoogle === 'true') {
-            addAction(gUrl, 'https://www.google.com/favicon.ico', 'Google');
-          }
-
-          mSearchTd.appendChild(actionsDiv);
-          mRow.appendChild(mSearchTd);
-
-          resultsBodyEl.appendChild(mRow);
-        });
-
-        noteEntries.forEach((item) => {
-          const row = document.createElement('tr');
-          const requestorTd = document.createElement('td');
-          requestorTd.textContent = item.requestor || '';
-          row.appendChild(requestorTd);
-          const noteTd = document.createElement('td');
-          noteTd.textContent = item.note || '';
-          row.appendChild(noteTd);
-          noteResultsBodyEl.appendChild(row);
-        });
-
-        const contactCount = contactEntries.length;
-        const noteCount = noteEntries.length;
-        referralSectionEl.style.display = (contactCount || noteCount) ? 'block' : 'none';
-        specificResultsWrapperEl.style.display = contactCount ? 'block' : 'none';
-        noteResultsWrapperEl.style.display = noteCount ? 'block' : 'none';
-        specificResultsHeadingEl.style.display = contactCount ? 'block' : 'none';
-        noteResultsHeadingEl.style.display = noteCount ? 'block' : 'none';
-        openAllRowEl.style.display = contactCount >= 2 ? 'table-row' : 'none';
-      }
-
-      function getJoinProspects() {
-        if (!joinProspectsEl) {
-          return [];
-        }
-        return joinProspectsEl.value
-          .split(/\r?\n/)
-          .map((line) => line.trim())
-          .filter(Boolean);
-      }
-
-      function buildJoinProspectUrl(term) {
-        const params = new URLSearchParams({
-          keywords: term,
-          network: '["F"]',
-          geoUrn: '["101165590"]',
-        });
-        return `https://www.linkedin.com/search/results/people/?${params.toString()}`;
-      }
-
-      function renderJoinProspects(list) {
-        if (!joinProspectsLists.length) {
-          return;
-        }
-        joinProspectsLists.forEach((ul) => {
-          ul.innerHTML = '';
-        });
-        if (!list.length) {
-          if (joinProspectsViewerSectionEl) {
-            joinProspectsViewerSectionEl.hidden = true;
-          }
-          return;
-        }
-        list.forEach((term) => {
-          const url = buildJoinProspectUrl(term);
-          joinProspectsLists.forEach((ul) => {
-            const li = document.createElement('li');
-            const a = document.createElement('a');
-            a.href = url;
-            a.target = '_blank';
-            a.rel = 'noopener';
-            const img = document.createElement('img');
-            img.src = 'https://cdn-icons-png.flaticon.com/512/174/174857.png';
-            img.alt = 'LinkedIn';
-            img.className = 'icon';
-            a.appendChild(img);
-            a.appendChild(document.createTextNode(term));
-            li.appendChild(a);
-            ul.appendChild(li);
-          });
-        });
-        if (joinProspectsViewerSectionEl) {
-          joinProspectsViewerSectionEl.hidden = false;
-        }
-      }
-
-      function getStateFromUI() {
-        const list = sortEntries(entries).map(entryToLine).filter(Boolean).join('\n');
-        const meetingName = meetingNameEl.value.trim();
-        const meetingDate = meetingDateEl.value;
-        const join = joinProspectsEl ? joinProspectsEl.value.trim() : '';
-        return {
-          meeting: meetingName,
-          date: meetingDate,
-          list,
-          join,
-        };
-      }
-
-      function isEmptyState(state) {
-        return !(
-          (state.meeting && state.meeting.trim()) ||
-          (state.date && state.date.trim()) ||
-          (state.list && state.list.trim()) ||
-          (state.join && state.join.trim())
-        );
-      }
-
-      function updateUrlFromState(state) {
-        const meetingDate = meetingDateEl.value || getTodayDateValue();
-        if (!meetingDateEl.value) {
-          meetingDateEl.value = meetingDate;
-        }
-        const url = new URL(window.location.href);
-        if (isEmptyState(state)) {
-          url.hash = '';
-          window.history.replaceState(null, '', url.toString());
-          shareEl.value = url.toString();
-          return;
-        }
-        const json = JSON.stringify(state);
-        const compressed = LZString.compressToEncodedURIComponent(json);
-        url.hash = `data=${compressed}`;
-        window.history.replaceState(null, '', url.toString());
-        shareEl.value = url.toString();
-      }
-
-      function setShareUrl() {
-        updateUrlFromState(getStateFromUI());
-        updateMeetingHeading();
-        return shareEl.value;
-      }
-
-      function getTodayDateValue() {
-        const today = new Date();
-        const localMidnight = new Date(today.getTime() - (today.getTimezoneOffset() * 60000));
-        return localMidnight.toISOString().slice(0, 10);
-      }
-
-      function formatMeetingDate(value) {
-        if (!value) {
-          return '';
-        }
-        const [year, month, day] = value.split('-').map(Number);
-        if (
-          Number.isNaN(year) ||
-          Number.isNaN(month) ||
-          Number.isNaN(day)
-        ) {
-          return value;
-        }
-        const date = new Date(Date.UTC(year, month - 1, day));
-        return date.toLocaleDateString(undefined, {
-          year: 'numeric',
-          month: 'long',
-          day: 'numeric',
-          timeZone: 'UTC',
-        });
-      }
-
-      function updateMeetingHeading() {
-        if (!meetingHeadingEl) {
-          return;
-        }
-        const meetingName = meetingNameEl.value.trim();
-        const meetingDate = meetingDateEl.value;
-        const parts = [];
-        if (meetingName) {
-          parts.push(meetingName);
-        }
-        const formattedDate = formatMeetingDate(meetingDate);
-        if (formattedDate) {
-          parts.push(formattedDate);
-        }
-        if (parts.length) {
-          meetingHeadingEl.textContent = parts.join(' — ');
-          meetingHeadingEl.hidden = false;
-        } else {
-          meetingHeadingEl.textContent = '';
-          meetingHeadingEl.hidden = true;
-        }
-      }
-
-      function loadStateFromUrl() {
-        const hash = window.location.hash;
-        if (!hash.startsWith('#data=')) {
-          return null;
-        }
-        const compressed = hash.replace('#data=', '');
-        try {
-          const json = LZString.decompressFromEncodedURIComponent(compressed);
-          if (!json) {
-            return null;
-          }
-          const parsed = JSON.parse(json);
-          if (!parsed || typeof parsed !== 'object') {
-            return null;
-          }
-          return parsed;
-        } catch (e) {
-          console.error('Failed to decode URL data', e);
-          return null;
-        }
-      }
-
-      function applyStateToUI(state) {
-        const list = typeof state.list === 'string' ? state.list : '';
-        const join = typeof state.join === 'string' ? state.join : '';
-        const meeting = typeof state.meeting === 'string' ? state.meeting : '';
-        const date = typeof state.date === 'string' ? state.date : '';
-
-        entries = parseListEntries(list);
-        renderEditorTables();
-        if (joinProspectsEl) {
-          joinProspectsEl.value = join;
-        }
-        meetingNameEl.value = meeting;
-        meetingDateEl.value = date;
-      }
-
-      function loadFromUrl(state = loadStateFromUrl()) {
-        if (state) {
-          applyStateToUI(state);
-          render(entries);
-        } else {
-          entries = [];
-          renderEditorTables();
-        }
-
-        const url = new URL(window.location.href);
-        const dateParam = url.searchParams.get('date');
-        if (dateParam) {
-          meetingDateEl.value = dateParam;
-        } else if (!meetingDateEl.value) {
-          meetingDateEl.value = getTodayDateValue();
-        }
-
-        const hasList = !!(state && typeof state.list === 'string' && state.list.trim());
-        const hasJoin = !!(state && typeof state.join === 'string' && state.join.trim());
-        const isViewer = hasList || hasJoin;
-        bodyEl.dataset.mode = isViewer ? 'viewer' : 'editor';
-        meetingNameEl.readOnly = isViewer;
-        meetingDateEl.disabled = isViewer;
-        if (addRowEl) {
-          addRowEl.disabled = isViewer;
-        }
-        document.querySelectorAll('#specificRows input,#specificRows button,#noteRows input,#noteRows button').forEach((el) => {
-          el.disabled = isViewer;
-        });
-        newSpecificEl.disabled = isViewer;
-        newRequesterEl.disabled = isViewer;
-        newNameEl.disabled = isViewer;
-        newOrganisationEl.disabled = isViewer;
-        newGeneralNoteEl.disabled = isViewer;
-        if (joinProspectsEl) {
-          joinProspectsEl.readOnly = isViewer;
-        }
-        setShareUrl();
-      }
-
-      openAllLinkedInEl.addEventListener('click', () => {
-        sortEntries(entries).forEach((item) => {
-          const query = `${item.name || ''} ${item.organization || ''}`.trim();
-          if (item.type === 'contact' && query) {
-            const { liUrl } = searchUrls(query);
-            window.open(liUrl, '_blank');
-          }
-        });
-      });
-
-      openAllFacebookEl.addEventListener('click', () => {
-        sortEntries(entries).forEach((item) => {
-          const query = `${item.name || ''} ${item.organization || ''}`.trim();
-          if (item.type === 'contact' && query) {
-            const { fbUrl } = searchUrls(query);
-            window.open(fbUrl, '_blank');
-          }
-        });
-      });
-
-      openAllGoogleEl.addEventListener('click', () => {
-        sortEntries(entries).forEach((item) => {
-          const query = `${item.name || ''} ${item.organization || ''}`.trim();
-          if (item.type === 'contact' && query) {
-            const { gUrl } = searchUrls(query);
-            window.open(gUrl, '_blank');
-          }
-        });
-      });
-
-      if (toggleFacebookEl) {
-        toggleFacebookEl.addEventListener('change', () => {
-          updatePlatformVisibility();
-          render(sortEntries(entries));
-        });
-      }
-
-      if (toggleGoogleEl) {
-        toggleGoogleEl.addEventListener('change', () => {
-          updatePlatformVisibility();
-          render(sortEntries(entries));
-        });
-      }
-
-      $('#copyShare').addEventListener('click', async () => {
-        const shareUrl = setShareUrl();
-        try {
-          await navigator.clipboard.writeText(shareUrl);
-        } catch (_) {
-          shareEl.select();
-          document.execCommand('copy');
-        }
-      });
-
-      if (openBlankEl) {
-        openBlankEl.addEventListener('click', () => {
-          const baseUrl = window.location.origin + window.location.pathname;
-          window.open(baseUrl, '_blank');
-        });
-      }
-
-      if (copyBlankEl) {
-        copyBlankEl.addEventListener('click', async () => {
-          const baseUrl = window.location.origin + window.location.pathname;
-          if (navigator.share) {
-            try {
-              await navigator.share({
-                title: 'BNI Referral Contact Generator',
-                url: baseUrl,
-              });
-              return;
-            } catch (err) {
-              if (err && err.name === 'AbortError') {
-                return;
-              }
-            }
-          }
-          try {
-            await navigator.clipboard.writeText(baseUrl);
-          } catch (_) {
-            const temp = document.createElement('input');
-            temp.value = baseUrl;
-            document.body.appendChild(temp);
-            temp.select();
-            document.execCommand('copy');
-            document.body.removeChild(temp);
-          }
-        });
-      }
-
-      if (enableEditingEl) {
-        enableEditingEl.addEventListener('click', () => {
-          bodyEl.dataset.mode = 'editor';
-          meetingNameEl.readOnly = false;
-          meetingDateEl.disabled = false;
-          if (addRowEl) {
-            addRowEl.disabled = false;
-          }
-          document.querySelectorAll('#specificRows input,#specificRows button,#noteRows input,#noteRows button').forEach((el) => {
-            el.disabled = false;
-          });
-          newSpecificEl.disabled = false;
-          newRequesterEl.disabled = false;
-          newNameEl.disabled = false;
-          newOrganisationEl.disabled = false;
-          newGeneralNoteEl.disabled = false;
-          if (joinProspectsEl) {
-            joinProspectsEl.readOnly = false;
-          }
-        });
-      }
-
-      if (emailBlankEl) {
-        emailBlankEl.addEventListener('click', () => {
-          const baseUrl = window.location.origin + window.location.pathname;
-          window.open(`mailto:?subject=BNI%20Referral%20Contact%20Generator&body=${encodeURIComponent(baseUrl)}`);
-        });
-      }
-
-      let updateTimer;
-      function scheduleUpdates() {
-        clearTimeout(updateTimer);
-        updateTimer = setTimeout(() => {
-          render(sortEntries(entries));
-          renderJoinProspects(getJoinProspects());
-          setShareUrl();
-        }, 250);
-      }
-
-      function getRowEntryId(target) {
-        const row = target.closest('tr');
-        if (!row || !row.dataset.entryId) {
-          return -1;
-        }
-        return Number(row.dataset.entryId);
-      }
-
-      function handleEditorInput(event) {
-        if (event.target.classList.contains('is-specific')) {
-          return;
-        }
-        const id = getRowEntryId(event.target);
-        if (id < 0 || !entries[id]) {
-          return;
-        }
-        const row = event.target.closest('tr');
-        const entry = entries[id];
-        entry.requestor = (row.querySelector('.requestor')?.value || '').trim();
-        if (entry.type === 'contact') {
-          entry.name = (row.querySelector('.name')?.value || '').trim();
-          entry.organization = (row.querySelector('.organization')?.value || '').trim();
-        } else {
-          entry.note = (row.querySelector('.note')?.value || '').trim();
-        }
-        scheduleUpdates();
-      }
-
-      function handleEditorChange(event) {
-        if (!event.target.classList.contains('is-specific')) {
-          return;
-        }
-        const id = getRowEntryId(event.target);
-        if (id < 0 || !entries[id]) {
-          return;
-        }
-        const current = entries[id];
-        if (event.target.checked && current.type === 'note') {
-          entries[id] = {
-            type: 'contact',
-            requestor: current.requestor || '',
-            name: current.note || '',
-            organization: '',
-          };
-        } else if (!event.target.checked && current.type === 'contact') {
-          entries[id] = {
-            type: 'note',
-            requestor: current.requestor || '',
-            note: [current.name, current.organization].filter(Boolean).join(', '),
-          };
-        }
-        renderEditorTables();
-        scheduleUpdates();
-      }
-
-      function handleEditorClick(event) {
-        if (!event.target.classList.contains('remove-row')) {
-          return;
-        }
-        const id = getRowEntryId(event.target);
-        if (id < 0 || !entries[id]) {
-          return;
-        }
-        entries.splice(id, 1);
-        renderEditorTables();
-        scheduleUpdates();
-      }
-
-      if (specificRowsEl && noteRowsEl) {
-        specificRowsEl.addEventListener('input', handleEditorInput);
-        noteRowsEl.addEventListener('input', handleEditorInput);
-        specificRowsEl.addEventListener('change', handleEditorChange);
-        noteRowsEl.addEventListener('change', handleEditorChange);
-        specificRowsEl.addEventListener('click', handleEditorClick);
-        noteRowsEl.addEventListener('click', handleEditorClick);
-      }
-      if (addRowEl) {
-        const addNewRow = () => {
-          const isSpecific = !!newSpecificEl.checked;
-          const requestor = newRequesterEl.value.trim();
-          const name = newNameEl.value.trim();
-          const organization = newOrganisationEl.value.trim();
-          const note = newGeneralNoteEl.value.trim();
-          if (isSpecific && !(requestor || name || organization)) {
-            return;
-          }
-          if (!isSpecific && !(requestor || note)) {
-            return;
-          }
-          entries.push(isSpecific
-            ? { type: 'contact', requestor, name, organization }
-            : { type: 'note', requestor, note });
-          newRequesterEl.value = '';
-          newNameEl.value = '';
-          newOrganisationEl.value = '';
-          newGeneralNoteEl.value = '';
-          renderEditorTables();
-          scheduleUpdates();
-        };
-        addRowEl.addEventListener('click', addNewRow);
-        [newRequesterEl, newNameEl, newOrganisationEl, newGeneralNoteEl].forEach((input) => {
-          input.addEventListener('keydown', (event) => {
-            if ((event.metaKey || event.ctrlKey) && event.key === 'Enter') {
-              event.preventDefault();
-              addNewRow();
-            }
-          });
-        });
-      }
-      if (newSpecificEl) {
-        newSpecificEl.addEventListener('change', () => {
-          if (!newSpecificEl.checked && !newGeneralNoteEl.value.trim()) {
-            newGeneralNoteEl.value = newNameEl.value.trim();
-          }
-          updateNewRowMode();
-        });
-      }
-      if (joinProspectsEl) {
-        joinProspectsEl.addEventListener('input', scheduleUpdates);
-      }
-
-      meetingNameEl.addEventListener('input', setShareUrl);
-      meetingDateEl.addEventListener('input', setShareUrl);
-
-      function initFromUrl() {
-        updatePlatformVisibility();
-        updateNewRowMode();
-        const state = loadStateFromUrl();
-        if (state) {
-          applyStateToUI(state);
-        }
-        loadFromUrl(state);
-        render(sortEntries(entries));
-        renderJoinProspects(getJoinProspects());
-      }
-
-      if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', initFromUrl);
-      } else {
-        initFromUrl();
-      }
-    })();
-  </script>
 </body>
 </html>
