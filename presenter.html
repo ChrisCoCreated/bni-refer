@@ -141,10 +141,10 @@
       flex: 1;
       display: grid;
       grid-template-columns: 1fr;
-      grid-template-rows: auto 1fr auto;
-      padding: 60px 80px;
+      grid-template-rows: auto auto 1fr auto;
+      padding: 40px 60px;
       position: relative;
-      gap: 40px;
+      gap: 24px;
     }
 
     /* Header area with number badge and BNI Kent label */
@@ -160,14 +160,15 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      width: 80px;
-      height: 80px;
+      width: 70px;
+      height: 70px;
       background: var(--bni-red);
       border-radius: 12px;
       color: white;
-      font-size: 36px;
+      font-size: 32px;
       font-weight: bold;
       box-shadow: 0 4px 12px rgba(220, 38, 38, 0.2);
+      flex-shrink: 0;
     }
 
     .presentation-branding {
@@ -178,7 +179,7 @@
     }
 
     .bni-label {
-      font-size: 14px;
+      font-size: 12px;
       font-weight: 600;
       color: var(--bni-red);
       letter-spacing: 0.5px;
@@ -186,75 +187,92 @@
     }
 
     .bni-kent {
-      font-size: 12px;
+      font-size: 11px;
       color: var(--text-light);
     }
 
-    /* Main content area */
-    .presentation-main {
+    /* Member info section - secondary */
+    .presentation-member-section {
       grid-column: 1;
       grid-row: 2;
       display: flex;
       flex-direction: column;
+      gap: 4px;
       justify-content: flex-start;
     }
 
     .presentation-member {
-      font-size: 56px;
+      font-size: 42px;
       font-weight: 700;
-      margin: 0 0 16px 0;
+      margin: 0;
       line-height: 1.1;
       color: var(--text-dark);
     }
 
     .presentation-company {
-      font-size: 24px;
+      font-size: 22px;
       color: var(--text-light);
       margin: 0;
       font-weight: 400;
     }
 
-    /* Ideal referral card */
+    /* Main referral section - PRIMARY FOCUS */
     .presentation-referral-section {
       grid-column: 1;
       grid-row: 3;
       display: flex;
       flex-direction: column;
-      gap: 16px;
+      justify-content: center;
+      gap: 20px;
     }
 
     .referral-card {
       background: var(--bg-light-grey);
-      border-left: 5px solid var(--bni-red);
-      padding: 24px;
-      border-radius: 6px;
+      border-left: 8px solid var(--bni-red);
+      padding: 40px 36px;
+      border-radius: 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
     }
 
     .referral-label {
-      font-size: 13px;
-      font-weight: 600;
+      font-size: 15px;
+      font-weight: 700;
       color: var(--bni-red);
       text-transform: uppercase;
-      letter-spacing: 0.5px;
-      margin: 0 0 12px 0;
+      letter-spacing: 1px;
+      margin: 0;
     }
 
     .presentation-ideal-referral {
-      font-size: 20px;
+      font-size: 54px;
       color: var(--text-dark);
       margin: 0;
+      font-weight: 700;
+      line-height: 1.2;
+      letter-spacing: -0.5px;
+    }
+
+    .referral-prompt {
+      font-size: 20px;
+      color: var(--text-light);
+      margin: 8px 0 0 0;
       font-weight: 500;
-      line-height: 1.6;
+      font-style: italic;
     }
 
     /* Footer with navigation */
     .presentation-footer {
-      padding: 24px 80px;
+      padding: 20px 60px;
       border-top: 1px solid var(--border-grey);
       display: flex;
       justify-content: space-between;
       align-items: center;
       background: var(--bg-light-grey);
+      grid-column: 1;
+      grid-row: 4;
     }
 
     .next-section {
@@ -264,7 +282,7 @@
     }
 
     .next-indicator {
-      font-size: 12px;
+      font-size: 11px;
       color: var(--text-light);
       text-transform: uppercase;
       font-weight: 600;
@@ -272,7 +290,7 @@
     }
 
     .next-info {
-      font-size: 18px;
+      font-size: 16px;
       font-weight: 600;
       color: var(--text-dark);
     }
@@ -287,10 +305,10 @@
       background: white;
       border: 1px solid var(--border-grey);
       color: var(--text-dark);
-      padding: 10px 18px;
+      padding: 9px 16px;
       border-radius: 6px;
       cursor: pointer;
-      font-size: 14px;
+      font-size: 13px;
       font-weight: 500;
       transition: all 0.15s ease;
     }
@@ -307,31 +325,34 @@
     }
 
     .keyboard-hint {
-      font-size: 12px;
+      font-size: 11px;
       color: var(--text-light);
     }
 
     /* Made with love footer */
     .made-with-love {
-      padding: 16px 80px;
-      background: white;
-      border-top: 1px solid var(--border-grey);
+      position: fixed;
+      bottom: 0;
+      right: 0;
+      padding: 12px 20px;
       display: flex;
       align-items: center;
       justify-content: flex-end;
-      gap: 8px;
+      gap: 6px;
       font-size: 12px;
       color: var(--text-light);
+      pointer-events: none;
     }
 
     .made-with-love a {
       display: inline-flex;
       align-items: center;
-      gap: 6px;
+      gap: 4px;
       color: var(--text-dark);
       text-decoration: none;
       font-weight: 500;
       transition: color 0.15s ease;
+      pointer-events: auto;
     }
 
     .made-with-love a:hover {
@@ -339,7 +360,7 @@
     }
 
     .made-with-love img {
-      height: 20px;
+      height: 16px;
       width: auto;
       object-fit: contain;
     }
@@ -366,56 +387,52 @@
     /* Responsive Design */
     @media (max-width: 1024px) {
       .presentation-content {
-        padding: 48px 60px;
-        gap: 32px;
+        padding: 36px 48px;
+        gap: 20px;
       }
 
       .presentation-footer {
-        padding: 20px 60px;
-      }
-
-      .made-with-love {
-        padding: 14px 60px;
+        padding: 18px 48px;
       }
 
       .presentation-number-badge {
-        width: 70px;
-        height: 70px;
-        font-size: 32px;
+        width: 65px;
+        height: 65px;
+        font-size: 30px;
       }
 
       .presentation-member {
-        font-size: 48px;
+        font-size: 38px;
       }
 
       .presentation-company {
         font-size: 20px;
       }
 
+      .referral-card {
+        padding: 36px 32px;
+      }
+
       .presentation-ideal-referral {
+        font-size: 48px;
+      }
+
+      .referral-prompt {
         font-size: 18px;
       }
     }
 
     @media (max-width: 768px) {
       .presentation-content {
-        padding: 40px 30px;
-        gap: 24px;
+        padding: 32px 30px;
+        gap: 16px;
+        grid-template-rows: auto auto 1fr auto;
       }
 
       .presentation-footer {
         padding: 16px 30px;
         flex-direction: column;
-        gap: 16px;
-      }
-
-      .made-with-love {
-        padding: 12px 30px;
-        justify-content: center;
-      }
-
-      .presentation-header {
-        justify-content: space-between;
+        gap: 12px;
       }
 
       .presentation-number-badge {
@@ -425,15 +442,15 @@
       }
 
       .bni-label {
-        font-size: 12px;
-      }
-
-      .bni-kent {
         font-size: 11px;
       }
 
+      .bni-kent {
+        font-size: 10px;
+      }
+
       .presentation-member {
-        font-size: 40px;
+        font-size: 34px;
       }
 
       .presentation-company {
@@ -441,10 +458,19 @@
       }
 
       .referral-card {
-        padding: 20px;
+        padding: 30px 24px;
+        gap: 12px;
+      }
+
+      .referral-label {
+        font-size: 13px;
       }
 
       .presentation-ideal-referral {
+        font-size: 42px;
+      }
+
+      .referral-prompt {
         font-size: 16px;
       }
 
@@ -461,68 +487,99 @@
       .next-section {
         text-align: center;
       }
-    }
 
-    @media (max-width: 480px) {
-      .presentation-content {
-        padding: 30px 20px;
-        gap: 20px;
+      .next-info {
+        font-size: 15px;
       }
 
-      .presentation-footer {
-        padding: 12px 20px;
+      .nav-button {
+        padding: 8px 14px;
+        font-size: 12px;
       }
 
       .made-with-love {
-        padding: 10px 20px;
+        padding: 10px 16px;
         font-size: 11px;
       }
 
       .made-with-love img {
-        height: 18px;
+        height: 14px;
       }
+    }
 
-      .presentation-header {
+    @media (max-width: 480px) {
+      .presentation-content {
+        padding: 24px 18px;
         gap: 12px;
       }
 
+      .presentation-footer {
+        padding: 12px 18px;
+      }
+
+      .presentation-header {
+        gap: 8px;
+      }
+
       .presentation-number-badge {
-        width: 50px;
-        height: 50px;
-        font-size: 24px;
+        width: 55px;
+        height: 55px;
+        font-size: 26px;
       }
 
       .bni-label {
-        font-size: 11px;
-      }
-
-      .bni-kent {
         font-size: 10px;
       }
 
+      .bni-kent {
+        font-size: 9px;
+      }
+
       .presentation-member {
-        font-size: 32px;
+        font-size: 28px;
       }
 
       .presentation-company {
         font-size: 16px;
       }
 
+      .referral-card {
+        padding: 24px 20px;
+        gap: 10px;
+      }
+
+      .referral-label {
+        font-size: 12px;
+      }
+
       .presentation-ideal-referral {
+        font-size: 32px;
+      }
+
+      .referral-prompt {
+        font-size: 14px;
+      }
+
+      .next-indicator {
+        font-size: 10px;
+      }
+
+      .next-info {
         font-size: 14px;
       }
 
       .nav-button {
-        padding: 8px 14px;
-        font-size: 13px;
-      }
-
-      .next-indicator {
+        padding: 7px 12px;
         font-size: 11px;
       }
 
-      .next-info {
-        font-size: 16px;
+      .made-with-love {
+        padding: 8px 12px;
+        font-size: 10px;
+      }
+
+      .made-with-love img {
+        height: 12px;
       }
     }
   </style>
@@ -563,42 +620,44 @@
         </div>
       </div>
 
-      <!-- Main member info -->
-      <div class="presentation-main">
-        <h1 class="presentation-member" id="memberName">Loading...</h1>
+      <!-- Member info section - secondary -->
+      <div class="presentation-member-section">
+        <h2 class="presentation-member" id="memberName">Loading...</h2>
         <p class="presentation-company" id="memberCompany"></p>
       </div>
 
-      <!-- Ideal referral card -->
+      <!-- Main ideal referral section - PRIMARY FOCUS -->
       <div class="presentation-referral-section">
         <div class="referral-card">
           <p class="referral-label">Ideal Referral</p>
           <p class="presentation-ideal-referral" id="memberIdealReferral"></p>
-        </div>
-      </div>
-    </div>
-
-    <!-- Footer with navigation -->
-    <div class="presentation-footer">
-      <div class="next-section">
-        <div class="next-indicator">Up Next:</div>
-        <div class="next-info">
-          <span id="nextNumber">—</span> <span id="nextName">—</span>
+          <p class="referral-prompt">Who do you know who can introduce me?</p>
         </div>
       </div>
 
-      <div class="navigation">
-        <button class="nav-button" id="prevButton" aria-label="Previous">← Previous</button>
-        <span class="keyboard-hint">Use ← → or arrow keys</span>
-        <button class="nav-button" id="nextButton" aria-label="Next">Next →</button>
+      <!-- Footer with navigation -->
+      <div class="presentation-footer">
+        <div class="next-section">
+          <div class="next-indicator">Up Next:</div>
+          <div class="next-info">
+            <span id="nextNumber">—</span> <span id="nextName">—</span>
+          </div>
+        </div>
+
+        <div class="navigation">
+          <button class="nav-button" id="prevButton" aria-label="Previous">← Prev</button>
+          <span class="keyboard-hint">← → arrow keys</span>
+          <button class="nav-button" id="nextButton" aria-label="Next">Next →</button>
+        </div>
       </div>
     </div>
 
     <!-- Made with love footer -->
     <div class="made-with-love">
       <span>Made with ❤️ by</span>
-      <a href="https://thrivehomecare.co.uk" target="_blank" rel="noopener">
+      <a href="https://thrivehomecare.co.uk" target="_blank" rel="noopener" aria-label="Visit Thrive Homecare">
         <img src="https://static.wixstatic.com/media/3cbab2_a584714b048842648b34615dd1dc792a~mv2.png/v1/fill/w_478,h_240,al_c,q_85,usm_0.66_1.00_0.01,enc_avif,quality_auto/thrive-logo.png" alt="Thrive Homecare" />
+        <span>Thrive Homecare</span>
       </a>
     </div>
   </div>
