@@ -311,6 +311,39 @@
       color: var(--text-light);
     }
 
+    /* Made with love footer */
+    .made-with-love {
+      padding: 16px 80px;
+      background: white;
+      border-top: 1px solid var(--border-grey);
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 8px;
+      font-size: 12px;
+      color: var(--text-light);
+    }
+
+    .made-with-love a {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      color: var(--text-dark);
+      text-decoration: none;
+      font-weight: 500;
+      transition: color 0.15s ease;
+    }
+
+    .made-with-love a:hover {
+      color: var(--bni-red);
+    }
+
+    .made-with-love img {
+      height: 20px;
+      width: auto;
+      object-fit: contain;
+    }
+
     /* Loading Animation */
     .spinner {
       width: 24px;
@@ -339,6 +372,10 @@
 
       .presentation-footer {
         padding: 20px 60px;
+      }
+
+      .made-with-love {
+        padding: 14px 60px;
       }
 
       .presentation-number-badge {
@@ -370,6 +407,11 @@
         padding: 16px 30px;
         flex-direction: column;
         gap: 16px;
+      }
+
+      .made-with-love {
+        padding: 12px 30px;
+        justify-content: center;
       }
 
       .presentation-header {
@@ -429,6 +471,15 @@
 
       .presentation-footer {
         padding: 12px 20px;
+      }
+
+      .made-with-love {
+        padding: 10px 20px;
+        font-size: 11px;
+      }
+
+      .made-with-love img {
+        height: 18px;
       }
 
       .presentation-header {
@@ -541,6 +592,14 @@
         <span class="keyboard-hint">Use ← → or arrow keys</span>
         <button class="nav-button" id="nextButton" aria-label="Next">Next →</button>
       </div>
+    </div>
+
+    <!-- Made with love footer -->
+    <div class="made-with-love">
+      <span>Made with ❤️ by</span>
+      <a href="https://thrivehomecare.co.uk" target="_blank" rel="noopener">
+        <img src="https://static.wixstatic.com/media/3cbab2_a584714b048842648b34615dd1dc792a~mv2.png/v1/fill/w_478,h_240,al_c,q_85,usm_0.66_1.00_0.01,enc_avif,quality_auto/thrive-logo.png" alt="Thrive Homecare" />
+      </a>
     </div>
   </div>
 
