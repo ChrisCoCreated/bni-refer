@@ -1,0 +1,481 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>BNI Referrals</title>
+  <style>
+    :root { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; }
+    * { box-sizing: border-box; }
+    body { margin: 0; padding: 24px; background: #fff; color: #111; }
+    h1 { margin: 0 0 8px }
+    p.hint { margin: 0 0 16px; color: #555 }
+    .setup-screen {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 24px;
+      background: linear-gradient(135deg, #4f46e5 0%, #3730a3 100%);
+    }
+    .setup-container {
+      background: white;
+      border-radius: 12px;
+      padding: 32px;
+      max-width: 500px;
+      width: 100%;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    }
+    .setup-container h1 {
+      margin: 0 0 8px;
+      color: #111;
+    }
+    .setup-container .hint {
+      margin: 0 0 24px;
+      color: #555;
+      font-size: 14px;
+    }
+    .setup-container input {
+      width: 100%;
+      padding: 12px;
+      margin-bottom: 16px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      font: inherit;
+      font-size: 16px;
+    }
+    .setup-container input:focus-visible {
+      outline: none;
+      border-color: #4f46e5;
+      box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.14);
+    }
+    .setup-container button {
+      width: 100%;
+      padding: 12px;
+      background: #4f46e5;
+      border: none;
+      border-radius: 8px;
+      color: white;
+      font-weight: 600;
+      font-size: 16px;
+      cursor: pointer;
+      transition: background 0.15s ease;
+    }
+    .setup-container button:hover {
+      background: #4338ca;
+    }
+    .setup-container button:disabled {
+      background: #d1d5db;
+      cursor: not-allowed;
+    }
+    .status {
+      margin-top: 16px;
+      padding: 12px;
+      border-radius: 8px;
+      font-size: 14px;
+      display: none;
+    }
+    .status.show {
+      display: block;
+    }
+    .status.loading {
+      background: #f3f4f6;
+      color: #4f46e5;
+    }
+    .status.success {
+      background: #dcfce7;
+      color: #166534;
+    }
+    .status.error {
+      background: #fee2e2;
+      color: #b91c1c;
+    }
+    .content-screen {
+      display: none;
+    }
+    .content-screen.active {
+      display: block;
+    }
+    .table-wrapper { width: 100%; overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; }
+    th, td { padding: 12px 8px; text-align: left; border-bottom: 1px solid #ddd; }
+    th { font-weight: 600; background: #f9fafb; }
+    img.icon { width: 16px; height: 16px; vertical-align: middle; margin-right: 4px; }
+    a { color: #4f46e5; text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    .platform-filters { margin: 16px 0; display: flex; gap: 16px; flex-wrap: wrap; }
+    .platform-filters label { display: inline-flex; gap: 6px; align-items: center; font-size: 14px; }
+    body[data-show-facebook="false"] .col-facebook { display: none; }
+    body[data-show-google="false"] .col-google { display: none; }
+    .row { display: flex; gap: 8px; flex-wrap: wrap; margin: 12px 0 20px; }
+    button { font: inherit; padding: 10px 12px; cursor: pointer; border-radius: 8px; border: 1px solid #ddd; background: #fafafa; }
+    button:hover { background: #f2f2f2; }
+    .footer { margin-top: 24px; color: #666; font-size: 12px; }
+    .spinner {
+      width: 24px;
+      height: 24px;
+      border: 3px solid rgba(79, 70, 229, 0.2);
+      border-top-color: #4f46e5;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      display: inline-block;
+      margin-right: 8px;
+      vertical-align: middle;
+    }
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+    @media (max-width: 480px) {
+      body { padding: 16px; }
+      .setup-container { padding: 24px; }
+      table { font-size: 14px; }
+      th, td { padding: 8px 4px; }
+    }
+  </style>
+</head>
+<body>
+  <!-- Setup Screen -->
+  <div class="setup-screen" id="setupScreen">
+    <div class="setup-container">
+      <h1>📋 BNI Referrals</h1>
+      <p class="hint">Paste your public Google Sheet URL to display BNI member referrals.</p>
+      
+      <input
+        id="googleSheetUrl"
+        type="text"
+        placeholder="Paste public Google Sheet CSV export URL"
+        aria-label="Google Sheet URL"
+      />
+      
+      <p class="hint" style="font-size: 12px; margin-top: -8px;">
+        ℹ️ Share your sheet as CSV: File → Export → CSV
+      </p>
+
+      <button id="loadButton" type="button">Load Referrals</button>
+      
+      <div class="status" id="status"></div>
+    </div>
+  </div>
+
+  <!-- Content Screen -->
+  <div class="content-screen" id="contentScreen">
+    <h1>BNI Member Referrals</h1>
+    
+    <div class="platform-filters" aria-label="Search platform visibility">
+      <label><input id="toggleFacebook" type="checkbox" />Show Facebook</label>
+      <label><input id="toggleGoogle" type="checkbox" />Show Google</label>
+    </div>
+
+    <div class="table-wrapper">
+      <table id="referralsTable" aria-live="polite">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Member</th>
+            <th>Company</th>
+            <th>Category</th>
+            <th>Ideal Referral</th>
+            <th>LinkedIn</th>
+            <th class="col-facebook">Facebook</th>
+            <th class="col-google">Google</th>
+          </tr>
+        </thead>
+        <tbody id="referralsBody"></tbody>
+      </table>
+    </div>
+
+    <div class="row" style="margin-top: 24px;">
+      <button id="loadNew" type="button">Load Different Sheet</button>
+      <button id="copyUrl" type="button">Copy Page URL</button>
+    </div>
+
+    <div class="footer">
+      Built with referrals in mind by <a href="https://bnikent.co.uk/en-GB/memberdetails?encryptedMemberId=Q88w1PE3FMylGImDTiEfrQ%3D%3D&cmsv3=true&name=Chris+Gage" target="_blank" rel="noopener">Chris Gage</a>
+      and <a href="https://www.planwithcare.co.uk/" target="_blank" rel="noopener">Plan with Care</a>.
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      // Elements
+      const setupScreen = document.getElementById('setupScreen');
+      const contentScreen = document.getElementById('contentScreen');
+      const googleSheetUrlInput = document.getElementById('googleSheetUrl');
+      const loadButton = document.getElementById('loadButton');
+      const status = document.getElementById('status');
+      const referralsBody = document.getElementById('referralsBody');
+      const referralsTable = document.getElementById('referralsTable');
+      const toggleFacebookEl = document.getElementById('toggleFacebook');
+      const toggleGoogleEl = document.getElementById('toggleGoogle');
+      const loadNewEl = document.getElementById('loadNew');
+      const copyUrlEl = document.getElementById('copyUrl');
+      const bodyEl = document.body;
+
+      bodyEl.dataset.showFacebook = 'false';
+      bodyEl.dataset.showGoogle = 'false';
+
+      // Utility functions
+      function showStatus(message, type) {
+        status.textContent = message;
+        status.className = `status show ${type}`;
+        if (type === 'loading') {
+          status.innerHTML = `<span class="spinner"></span>${message}`;
+        }
+      }
+
+      function hideStatus() {
+        status.className = 'status';
+      }
+
+      function convertGoogleSheetUrl(url) {
+        const match = url.match(/\/spreadsheets\/d\/([^\/]+)/);
+        if (!match) {
+          throw new Error('Invalid Google Sheet URL');
+        }
+        const sheetId = match[1];
+        return `https://docs.google.com/spreadsheets/d/${sheetId}/export?format=csv`;
+      }
+
+      function parseCSV(csv) {
+        const lines = csv.trim().split('\n');
+        if (lines.length < 2) {
+          throw new Error('No data found in sheet');
+        }
+
+        const headers = lines[0].split(',').map((h) => h.trim().toLowerCase());
+        const numberIdx = headers.indexOf('number');
+        const memberIdx = headers.indexOf('member');
+        const chapterIdx = headers.indexOf('chapter');
+        const companyIdx = headers.indexOf('company');
+        const categoryIdx = headers.indexOf('category');
+        const idealReferralIdx = headers.indexOf('ideal referral');
+        const notesIdx = headers.indexOf('notes');
+
+        if (numberIdx === -1 || memberIdx === -1) {
+          throw new Error('Sheet must contain "number" and "member" columns');
+        }
+
+        const rows = [];
+        for (let i = 1; i < lines.length; i++) {
+          const line = lines[i].trim();
+          if (!line) continue;
+
+          const values = line.split(',').map((v) => v.trim());
+          rows.push({
+            number: values[numberIdx] || '',
+            member: values[memberIdx] || '',
+            chapter: chapterIdx !== -1 ? values[chapterIdx] || '' : '',
+            company: companyIdx !== -1 ? values[companyIdx] || '' : '',
+            category: categoryIdx !== -1 ? values[categoryIdx] || '' : '',
+            idealReferral: idealReferralIdx !== -1 ? values[idealReferralIdx] || '' : '',
+            notes: notesIdx !== -1 ? values[notesIdx] || '' : '',
+          });
+        }
+
+        return rows;
+      }
+
+      function searchUrls(q) {
+        const label = q.trim();
+        const clean = label.replace(/\s+/g, ' ').replace(/\s*,\s*/g, ' ');
+        const liUrl = 'https://www.linkedin.com/search/results/all?keywords=' + encodeURIComponent(clean);
+        const fbUrl = 'https://www.facebook.com/search/top?q=' + encodeURIComponent(clean);
+        const gUrl = 'https://www.google.com/search?q=' + encodeURIComponent(clean);
+        return { label, liUrl, fbUrl, gUrl };
+      }
+
+      function renderReferrals(data) {
+        referralsBody.innerHTML = '';
+
+        if (!data.length) {
+          const row = document.createElement('tr');
+          row.innerHTML = '<td colspan="8" style="text-align: center; color: #666; font-style: italic;">No referrals found</td>';
+          referralsBody.appendChild(row);
+          return;
+        }
+
+        data.forEach((item) => {
+          const row = document.createElement('tr');
+          
+          const numberTd = document.createElement('td');
+          numberTd.textContent = item.number || '—';
+          row.appendChild(numberTd);
+
+          const memberTd = document.createElement('td');
+          memberTd.textContent = item.member || '';
+          row.appendChild(memberTd);
+
+          const companyTd = document.createElement('td');
+          companyTd.textContent = item.company || '';
+          row.appendChild(companyTd);
+
+          const categoryTd = document.createElement('td');
+          categoryTd.textContent = item.category || '';
+          row.appendChild(categoryTd);
+
+          const idealReferralTd = document.createElement('td');
+          idealReferralTd.textContent = item.idealReferral || '';
+          row.appendChild(idealReferralTd);
+
+          // LinkedIn search
+          const linkedinTd = document.createElement('td');
+          if (item.idealReferral) {
+            const { label, liUrl } = searchUrls(item.idealReferral);
+            const a = document.createElement('a');
+            a.href = liUrl;
+            a.target = '_blank';
+            a.rel = 'noopener';
+            const img = document.createElement('img');
+            img.src = 'https://cdn-icons-png.flaticon.com/512/174/174857.png';
+            img.alt = 'LinkedIn';
+            img.className = 'icon';
+            a.appendChild(img);
+            a.appendChild(document.createTextNode('Search'));
+            linkedinTd.appendChild(a);
+          }
+          row.appendChild(linkedinTd);
+
+          // Facebook search
+          const facebookTd = document.createElement('td');
+          facebookTd.className = 'col-facebook';
+          if (item.idealReferral) {
+            const { label, fbUrl } = searchUrls(item.idealReferral);
+            const a = document.createElement('a');
+            a.href = fbUrl;
+            a.target = '_blank';
+            a.rel = 'noopener';
+            const img = document.createElement('img');
+            img.src = 'https://cdn-icons-png.flaticon.com/512/733/733547.png';
+            img.alt = 'Facebook';
+            img.className = 'icon';
+            a.appendChild(img);
+            a.appendChild(document.createTextNode('Search'));
+            facebookTd.appendChild(a);
+          }
+          row.appendChild(facebookTd);
+
+          // Google search
+          const googleTd = document.createElement('td');
+          googleTd.className = 'col-google';
+          if (item.idealReferral) {
+            const { label, gUrl } = searchUrls(item.idealReferral);
+            const a = document.createElement('a');
+            a.href = gUrl;
+            a.target = '_blank';
+            a.rel = 'noopener';
+            const img = document.createElement('img');
+            img.src = 'https://www.google.com/favicon.ico';
+            img.alt = 'Google';
+            img.className = 'icon';
+            a.appendChild(img);
+            a.appendChild(document.createTextNode('Search'));
+            googleTd.appendChild(a);
+          }
+          row.appendChild(googleTd);
+
+          referralsBody.appendChild(row);
+        });
+      }
+
+      function updatePlatformVisibility() {
+        const showFacebook = !!(toggleFacebookEl && toggleFacebookEl.checked);
+        const showGoogle = !!(toggleGoogleEl && toggleGoogleEl.checked);
+        bodyEl.dataset.showFacebook = showFacebook ? 'true' : 'false';
+        bodyEl.dataset.showGoogle = showGoogle ? 'true' : 'false';
+      }
+
+      async function loadGoogleSheet(url) {
+        try {
+          showStatus('Loading sheet...', 'loading');
+
+          let csvUrl = url;
+          if (url.includes('docs.google.com/spreadsheets')) {
+            csvUrl = convertGoogleSheetUrl(url);
+          }
+
+          const response = await fetch(csvUrl);
+          if (!response.ok) {
+            throw new Error(`Failed to load sheet: ${response.statusText}`);
+          }
+
+          const csv = await response.text();
+          const rows = parseCSV(csv);
+
+          if (rows.length === 0) {
+            throw new Error('No data found in sheet');
+          }
+
+          setTimeout(() => {
+            showStatus('Loaded!', 'success');
+            setTimeout(() => {
+              renderReferrals(rows);
+              setupScreen.style.display = 'none';
+              contentScreen.classList.add('active');
+              hideStatus();
+              
+              // Store URL for later reference
+              const pageUrl = new URL(window.location.href);
+              pageUrl.searchParams.set('sheet', csvUrl);
+              window.history.replaceState(null, '', pageUrl.toString());
+            }, 500);
+          }, 300);
+        } catch (error) {
+          showStatus(`Error: ${error.message}`, 'error');
+          loadButton.disabled = false;
+        }
+      }
+
+      // Event listeners
+      loadButton.addEventListener('click', () => {
+        const url = googleSheetUrlInput.value.trim();
+        if (!url) {
+          showStatus('Please enter a Google Sheet URL', 'error');
+          return;
+        }
+        loadButton.disabled = true;
+        loadGoogleSheet(url);
+      });
+
+      googleSheetUrlInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+          loadButton.click();
+        }
+      });
+
+      toggleFacebookEl.addEventListener('change', updatePlatformVisibility);
+      toggleGoogleEl.addEventListener('change', updatePlatformVisibility);
+
+      loadNewEl.addEventListener('click', () => {
+        setupScreen.style.display = 'flex';
+        contentScreen.classList.remove('active');
+        googleSheetUrlInput.value = '';
+        googleSheetUrlInput.focus();
+        loadButton.disabled = false;
+      });
+
+      copyUrlEl.addEventListener('click', () => {
+        const url = window.location.href;
+        navigator.clipboard.writeText(url).then(() => {
+          copyUrlEl.textContent = 'Copied!';
+          setTimeout(() => {
+            copyUrlEl.textContent = 'Copy Page URL';
+          }, 2000);
+        });
+      });
+
+      // Check for URL parameter on load
+      const params = new URLSearchParams(window.location.search);
+      const sheetParam = params.get('sheet');
+      if (sheetParam) {
+        googleSheetUrlInput.value = sheetParam;
+        loadButton.click();
+      } else {
+        googleSheetUrlInput.focus();
+      }
+    })();
+  </script>
+</body>
+</html>
