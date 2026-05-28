@@ -76,7 +76,7 @@
     <!-- ... your marketing-item divs ... -->
   </section>
   <div class="footer">
-    Built with referrals in mind by <a href="https://bnikent.co.uk/en-GB/memberdetails?encryptedMemberId=Q88w1PE3FMylGImDTiEfrQ%3D%3D&cmsv3=true&name=Chris+Gage" target="_blank" rel="noopener">Chris Gage</a>, a member of the <a href="https://bnikent.co.uk/en-GB/chapterdetail?chapterId=%2By1kEvGDBwVXevV5lVxbag%3D%3D&name=Online%20Canterbury" target="_blank" rel="noopener">Online Canterbury Chapter</a>, Founder of <a href="https://thrivehomecare.co.uk" target="_blank" rel="noopener">Thrive Homecare</a>, and <a href="https://www.planwithcare.co.uk/" target="_blank" rel="noopener">Plan with Care</a>.
+    Built with referrals in mind by <a href="https://bnikent.co.uk/en-GB/memberdetails?encryptedMemberId=Q88w1PE3FMylGImDTiEfrQ%3D%3D&cmsv3=true&name=Chris+Gage" target="_blank" rel="noopener">Chris G[...]
   </div>
   <script>
     (function() {
@@ -104,38 +104,37 @@
       toggleFacebook.addEventListener('change', updatePlatformVisibility);
       toggleGoogle.addEventListener('change', updatePlatformVisibility);
 
-      // Util for parsing CSV (not robust but fits BNI template structure)
+      // Util for parsing CSV (robust for tab or comma)
       function parseCSV(str) {
-        // Splits at newlines, then splits at comma, no escape/quotes support here (use Google Sheet's CSV format).
+        // Handle Google Sheets tabular CSV (sometimes tab, sometimes comma)
         let lines = str.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
-        let header = lines[0].split(',').map(h => h.trim().toLowerCase());
-        let find = (name) => header.findIndex(h => h === name);
-        let out = {specific:[],notes:[],join:[],meeting:"",date:""};
-        for(let i=1;i<lines.length;i++) {
-          let cols = lines[i].split(',').map(x=>x.trim());
-          let specificIdx = find('specific'), reqIdx = find('requester'), nameIdx = find('name');
-          let orgIdx = find('organisation'), noteIdx = find('note');
-          let meetIdx = find('meeting'), dateIdx = find('date'), joinIdx = find('join');
-          if (meetIdx !== -1) out.meeting = cols[meetIdx] || out.meeting;
-          if (dateIdx !== -1) out.date = cols[dateIdx] || out.date;
-          if (joinIdx !== -1 && cols[joinIdx]) out.join.push(cols[joinIdx]);
-          // classify as specific or note
-          let isSpecific = specificIdx === -1 ? true : (["yes","1","y","true"].includes((cols[specificIdx]||"").toLowerCase()));
-          if (isSpecific) {
-            if ((cols[nameIdx]||"").trim()) {
-              out.specific.push({
-                requestor: cols[reqIdx]||"",
-                name: cols[nameIdx]||"",
-                organization: orgIdx > -1 ? cols[orgIdx]||"" : ""
-              });
-            }
-          } else {
-            if ((cols[noteIdx]||"").trim()) {
-              out.notes.push({
-                requestor: cols[reqIdx]||"",
-                note: cols[noteIdx]||""
-              });
-            }
+        if (!lines.length) return {specific: [], notes: [], join: [], meeting: "", date: ""};
+        // Tab-separated? (your sample is tab, not comma)
+        let delimiter = lines[0].indexOf('\t') !== -1 ? '\t' : ',';
+        let header = lines[0].split(delimiter).map(h => h.trim().toLowerCase());
+        let find = name => {
+          name = name.toLowerCase();
+          return header.findIndex(h => h === name);
+        };
+        let memberIdx = find('member');
+        let idealReferralIdx = find('ideal referral');
+        let notesIdx = find('notes');
+        let companyIdx = find('company');
+        let out = { specific: [], notes: [], join: [], meeting: "", date: "" };
+        for (let i = 1; i < lines.length; i++) {
+          let cols = lines[i].split(delimiter).map(x => x.trim());
+          if ((cols[idealReferralIdx]||"").trim()) {
+            out.specific.push({
+              requestor: cols[memberIdx]||"",
+              name: cols[idealReferralIdx]||"",
+              organization: companyIdx !== -1 ? cols[companyIdx]||"" : ""
+            });
+          }
+          if ((cols[notesIdx]||"").trim()) {
+            out.notes.push({
+              requestor: cols[memberIdx]||"",
+              note: cols[notesIdx]||""
+            });
           }
         }
         return out;
@@ -155,7 +154,6 @@
         let parts = [];
         if(data.meeting) parts.push(data.meeting);
         if(data.date) {
-          // format date as in your code
           let ymd = data.date.split('-');
           if (ymd.length==3) {
             let d = new Date(Date.UTC(+ymd[0],+ymd[1]-1,+ymd[2]));
