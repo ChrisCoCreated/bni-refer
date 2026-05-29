@@ -1,6 +1,14 @@
 # BNI Referral Contact Generator
 
-This is a static web app for BNI members to paste a list of names (optionally with companies) and instantly get LinkedIn, Facebook and Google search links. It also provides "Open all" buttons and shareable URLs to speed up networking.
+This site is built for fellow BNI members.
+
+Its purpose is to provide simple tools and useful information that help members be more successful in their networking, referrals, and follow-up. The site is designed to make it easier to build stronger relationships, increase trust, and create more value for the chapter.
+
+It also supports the relationship between Thrive Homecare and its sister company, Plan With Care, by helping members understand the people and businesses behind the names they meet.
+
+## What it does
+
+This is a static web app for BNI members to paste a list of names (optionally with companies) and instantly get LinkedIn, Facebook, and Google search links. It also provides "Open all" buttons and shareable URLs to speed up networking and follow-up.
 
 ## How to use
 - Enter one person per line in the textarea. You can optionally start the line with the requester's name followed by a colon; this name will be shown in its own column and won't affect the search.
