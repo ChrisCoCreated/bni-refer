@@ -5,192 +5,570 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>BNI Referral Contact Viewer</title>
   <style>
-    :root { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; }
+    :root {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      --bni-red: #dc2626;
+      --text-dark: #1f2937;
+      --text-light: #6b7280;
+      --text-lighter: #9ca3af;
+      --bg-white: #ffffff;
+      --bg-light-grey: #f9fafb;
+      --border-grey: #e5e7eb;
+    }
+
     * { box-sizing: border-box; }
-    body { margin: 0; padding: 24px; background: #fff; color: #111; }
-    h1 { margin: 0 0 8px }
-    p.hint { margin: 0 0 16px; color: #555 }
-    .meeting-heading { margin: 0 0 16px; font-size: 16px; font-weight: 600; color: #444; }
-    /* ...rest of your provided CSS unchanged... */
-    /* Keep as from your last supplied page for full fidelity */
+    body { margin: 0; background: var(--bg-white); color: var(--text-dark); }
+    a { color: inherit; }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 56px 24px 40px;
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 36px;
+    }
+
+    .header h1 {
+      margin: 0 0 10px;
+      font-size: 48px;
+      line-height: 1.05;
+      font-weight: 700;
+      letter-spacing: 0;
+    }
+
+    .header p {
+      margin: 0;
+      font-size: 18px;
+      color: var(--text-light);
+    }
+
+    .loader {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin: 0 auto 22px;
+      padding: 18px;
+      border: 1px solid var(--border-grey);
+      border-radius: 12px;
+      background: var(--bg-light-grey);
+    }
+
+    .loader input {
+      flex: 1 1 420px;
+      min-width: 260px;
+      padding: 12px 14px;
+      border: 1px solid var(--border-grey);
+      border-radius: 8px;
+      font: inherit;
+      font-size: 16px;
+      background: white;
+    }
+
+    .loader input:focus-visible {
+      outline: none;
+      border-color: var(--bni-red);
+      box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.14);
+    }
+
+    .loader button,
+    .actions button {
+      border: none;
+      border-radius: 8px;
+      padding: 12px 16px;
+      font: inherit;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+    }
+
+    .loader button {
+      background: var(--bni-red);
+      color: white;
+      min-width: 120px;
+    }
+
+    .loader button:hover { background: #b91c1c; }
+
+    .status {
+      min-height: 22px;
+      margin: 8px 0 18px;
+      text-align: center;
+      font-size: 14px;
+      color: var(--text-light);
+    }
+
+    .share-row {
+      display: none;
+      gap: 12px;
+      align-items: center;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin: 0 0 18px;
+    }
+
+    .share-row input {
+      flex: 1 1 420px;
+      min-width: 260px;
+      padding: 12px 14px;
+      border: 1px solid var(--border-grey);
+      border-radius: 8px;
+      font: inherit;
+      font-size: 16px;
+      background: white;
+    }
+
+    .share-row button {
+      border: none;
+      border-radius: 8px;
+      padding: 12px 16px;
+      font: inherit;
+      font-weight: 600;
+      cursor: pointer;
+      background: white;
+      border: 1px solid var(--border-grey);
+      color: var(--text-dark);
+    }
+
+    .actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin: 0 0 16px;
+    }
+
+    .actions button {
+      background: white;
+      border: 1px solid var(--border-grey);
+      color: var(--text-dark);
+      padding: 10px 14px;
+    }
+
+    .actions button:hover {
+      border-color: var(--bni-red);
+      color: var(--bni-red);
+    }
+
+    .actions button:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+    }
+
+    .visibility-toggle {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      min-height: 38px;
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-dark);
+      cursor: pointer;
+    }
+
+    .visibility-toggle input {
+      position: absolute;
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .slider {
+      position: relative;
+      width: 46px;
+      height: 24px;
+      border-radius: 999px;
+      background: #d1d5db;
+      transition: background 0.15s ease;
+      flex-shrink: 0;
+    }
+
+    .slider::after {
+      content: "";
+      position: absolute;
+      top: 3px;
+      left: 3px;
+      width: 18px;
+      height: 18px;
+      border-radius: 999px;
+      background: white;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+      transition: transform 0.15s ease;
+    }
+
+    .visibility-toggle input:checked + .slider {
+      background: var(--bni-red);
+    }
+
+    .visibility-toggle input:checked + .slider::after {
+      transform: translateX(22px);
+    }
+
+    .visibility-toggle input:focus-visible + .slider {
+      box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.14);
+    }
+
+    .section-title {
+      margin: 0 0 12px;
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--text-dark);
+    }
+
+    .meeting-heading {
+      margin: 0 0 16px;
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--text-light);
+    }
+
+    .table-wrapper {
+      overflow-x: auto;
+      border: 1px solid var(--border-grey);
+      border-radius: 12px;
+      background: white;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 720px;
+    }
+
+    th, td {
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--border-grey);
+      text-align: left;
+      vertical-align: top;
+      font-size: 14px;
+    }
+
+    th {
+      background: var(--bg-light-grey);
+      font-size: 13px;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+      color: var(--text-light);
+    }
+
+    tr:last-child td { border-bottom: none; }
+
     .icon {
       width: 18px;
       height: 18px;
+      object-fit: contain;
       vertical-align: middle;
-      margin-right: 4px;
+      margin-right: 6px;
+    }
+
+    .col-facebook, .col-google { display: table-cell; }
+
+    body[data-show-facebook="false"] .col-facebook,
+    body[data-show-google="false"] .col-google { display: none; }
+
+    .open-all-note {
+      margin: 10px 0 0;
+      font-size: 13px;
+      color: var(--text-light);
+    }
+
+    .secondary-info {
+      background: white;
+      border: 1px solid var(--border-grey);
+      border-radius: 12px;
+      padding: 36px;
+      margin-top: 40px;
+    }
+
+    .secondary-info h2 {
+      margin: 0 0 22px;
+      font-size: 22px;
+      line-height: 1.2;
+    }
+
+    .thrive-section {
+      display: grid;
+      grid-template-columns: 140px 1fr;
+      gap: 24px;
+      align-items: start;
+    }
+
+    .thrive-logo {
+      width: 140px;
+      height: 140px;
+      border-radius: 12px;
+      background: var(--bg-light-grey);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+
+    .thrive-logo img {
+      max-width: 100%;
+      max-height: 100%;
       object-fit: contain;
     }
-    .open-all-row {
-      margin: 0 0 8px 0;
-      display: flex;
-      gap: 8px;
+
+    .thrive-content h3 {
+      margin: 0 0 8px;
+      font-size: 18px;
+      line-height: 1.2;
     }
-    .open-all-row button {
+
+    .thrive-content p {
+      margin: 0 0 12px;
+      font-size: 15px;
+      line-height: 1.6;
+      color: var(--text-light);
+    }
+
+    .thrive-content a {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--bni-red);
+      text-decoration: none;
+    }
+
+    .footer {
+      margin-top: 36px;
+      padding-top: 20px;
+      border-top: 1px solid var(--border-grey);
+      text-align: center;
       font-size: 13px;
-      padding: 4px 10px;
-      border-radius: 4px;
-      border: 1px solid #ddd;
-      background: #f5f5f5;
-      cursor: pointer;
+      color: var(--text-lighter);
+    }
+
+    .footer a {
+      color: var(--text-light);
+      text-decoration: none;
+      font-weight: 600;
+    }
+
+    .footer a:hover { color: var(--bni-red); }
+
+    @media (max-width: 768px) {
+      .container { padding: 40px 18px 30px; }
+      .header h1 { font-size: 34px; }
+      .header p { font-size: 16px; }
+      .secondary-info { padding: 28px 22px; }
+      .thrive-section { grid-template-columns: 1fr; }
+      .thrive-logo { width: 120px; height: 120px; }
+      table { min-width: 640px; }
+    }
+
+    @media (max-width: 480px) {
+      .header h1 { font-size: 28px; }
+      .loader { padding: 14px; }
+      .loader input { min-width: 100%; }
+      .loader button, .actions button { width: 100%; }
+      .actions { gap: 8px; }
+      .secondary-info { padding: 22px 18px; }
     }
   </style>
 </head>
 <body>
-  <h1>BNI Referral Contact Viewer</h1>
-  <p>Paste your <b>public Google Sheet CSV export URL</b> to display the latest referrals. <span style="font-size:12px;color:#888;">(Share as CSV: File → Export → CSV)</span></p>
-  <div class="row" style="margin-bottom:1.5em;">
-    <input id="sheetUrl" type="text" placeholder="Paste Google Sheet CSV export URL" style="flex:1 1 300px;min-width:150px;">
-    <button id="loadSheet" type="button">Load Sheet</button>
-    <span id="loadStatus" style="margin-left:10px;color:#b91c1c;"></span>
-  </div>
+  <div class="container">
+    <header class="header">
+      <h1>BNI Referral Contact Viewer</h1>
+      <p>Paste a public Google Sheet link and load the latest referral list in one go.</p>
+    </header>
 
-  <section id="referralSection" style="display:none;">
-    <h3 id="meetingHeading" class="meeting-heading" hidden></h3>
-    <div class="platform-filters" aria-label="Search platform visibility">
-      <label><input id="toggleFacebook" type="checkbox" />Show Facebook</label>
-      <label><input id="toggleGoogle" type="checkbox" />Show Google</label>
+    <div class="loader">
+      <input id="sheetUrl" type="text" placeholder="Paste Google Sheet URL or CSV export link" />
+      <button id="loadSheet" type="button">Load Sheet</button>
     </div>
+    <div id="loadStatus" class="status" aria-live="polite"></div>
 
-    <!-- Open All Buttons -->
-    <div class="open-all-row">
-      <button id="openAllLinkedIn" type="button">Open All LinkedIn</button>
-      <button id="openAllFacebook" type="button">Open All Facebook</button>
-      <button id="openAllGoogle" type="button">Open All Google</button>
-    </div>
+    <section id="referralSection" hidden>
+      <h2 id="meetingHeading" class="meeting-heading" hidden></h2>
 
-    <h3 id="specificResultsHeading" class="editor-subheading">Specific referrals</h3>
-    <div id="specificResultsWrapper" class="table-wrapper">
-      <table id="results" aria-live="polite">
-        <thead>
-          <tr>
-            <th>Requester</th>
-            <th>LinkedIn</th>
-            <th class="col-facebook">Facebook</th>
-            <th class="col-google">Google</th>
-          </tr>
-        </thead>
-        <tbody id="resultsBody"></tbody>
-      </table>
-    </div>
-    <h3 id="noteResultsHeading" class="editor-subheading">General Referals</h3>
-    <div id="noteResultsWrapper" class="table-wrapper">
-      <table id="noteResults" aria-live="polite">
-        <thead>
-          <tr>
-            <th>Requester</th>
-            <th>General note</th>
-          </tr>
-        </thead>
-        <tbody id="noteResultsBody"></tbody>
-      </table>
-    </div>
+      <div class="actions" aria-label="Search platform visibility and bulk actions">
+        <label class="visibility-toggle">
+          <input id="toggleFacebook" type="checkbox" />
+          <span class="slider" aria-hidden="true"></span>
+          <span>Facebook</span>
+        </label>
+        <label class="visibility-toggle">
+          <input id="toggleGoogle" type="checkbox" />
+          <span class="slider" aria-hidden="true"></span>
+          <span>Google</span>
+        </label>
+        <button id="openAllLinkedIn" type="button">Open all LinkedIn</button>
+        <button id="openAllFacebook" type="button">Open all Facebook</button>
+        <button id="openAllGoogle" type="button">Open all Google</button>
+      </div>
+      <p class="open-all-note">The Facebook and Google columns can be hidden when you only want the LinkedIn view.</p>
 
-    <section id="joinProspectsViewer" class="prospects" hidden>
-      <h3>Find people to join us</h3>
-      <p class="hint">Open these LinkedIn searches to invite potential visitors from your first-degree network.</p>
-      <ul class="join-prospects-list" id="joinProspectsListViewer"></ul>
+      <h3 class="section-title">Specific referrals</h3>
+      <div class="table-wrapper">
+        <table id="results" aria-live="polite">
+          <thead>
+            <tr>
+              <th>Requester</th>
+              <th>LinkedIn</th>
+              <th class="col-facebook">Facebook</th>
+              <th class="col-google">Google</th>
+            </tr>
+          </thead>
+          <tbody id="resultsBody"></tbody>
+        </table>
+      </div>
+
+      <h3 class="section-title" style="margin-top:22px;">General referrals</h3>
+      <div class="table-wrapper">
+        <table id="noteResults" aria-live="polite">
+          <thead>
+            <tr>
+              <th>Requester</th>
+              <th>General note</th>
+            </tr>
+          </thead>
+          <tbody id="noteResultsBody"></tbody>
+        </table>
+      </div>
+
+      <section class="secondary-info" aria-labelledby="about-title">
+        <h2 id="about-title">Plan with Care and Thrive</h2>
+        <div class="thrive-section">
+          <div class="thrive-logo">
+            <img src="https://static.wixstatic.com/media/3cbab2_a584714b048842648b34615dd1dc792a~mv2.png/v1/fill/w_478,h_240,al_c,q_85,usm_0.66_1.00_0.01,enc_avif,quality_auto/thrive-logo.png" alt="Thrive Homecare" />
+          </div>
+          <div class="thrive-content">
+            <h3>Thrive Homecare</h3>
+            <p>These tools were developed by <strong>Thrive Homecare</strong> to make fellow BNI members' lives that bit better. We provide compassionate homecare services for elderly people in the South East of England, helping them maintain independence and peace of mind for their families.</p>
+            <p>Built with referrals in mind by <a href="https://bnikent.co.uk/en-GB/memberdetails?encryptedMemberId=Q88w1PE3FMylGImDTiEfrQ%3D%3D&cmsv3=true&name=Chris+Gage" target="_blank" rel="noopener">Chris Gage</a> and <a href="https://www.planwithcare.co.uk/" target="_blank" rel="noopener">Plan with Care</a>.</p>
+            <a href="https://thrivehomecare.co.uk" target="_blank" rel="noopener">Visit Thrive Homecare</a>
+          </div>
+        </div>
+      </section>
+
+      <div class="share-row" aria-hidden="true">
+        <input id="shareUrl" type="text" readonly placeholder="Shareable URL will appear here" />
+        <button id="copyShare" type="button">Copy link to share this list</button>
+      </div>
     </section>
 
-    <div class="row">
-      <button id="copyShare">Copy link to share this list</button>
-      <input id="shareUrl" type="text" readonly placeholder="Shareable URL will appear here" />
+    <div class="footer">
+      The Google Sheet loader keeps the input side simple, so this page stays focused on browsing and sharing referrals.
     </div>
-    <p class="hint">Copy the link and share with the rest of the chapter to save you all time and increase referrals.</p>
-  </section>
-
-  <!-- Marketing section (same as your current, content omitted for brevity) -->
-  <section class="marketing">
-    <!-- ... your marketing-item divs ... -->
-  </section>
-  <div class="footer">
-    Built with referrals in mind by <a href="https://bnikent.co.uk/en-GB/memberdetails?encryptedMemberId=Q88w1PE3FMylGImDTiEfrQ%3D%3D&cmsv3=true&name=Chris+Gage" target="_blank" rel="noopener">Chris G[...]
   </div>
+
   <script>
     (function() {
       const $ = sel => document.querySelector(sel);
       const sheetUrlInput = $('#sheetUrl');
       const loadBtn = $('#loadSheet');
       const loadStatus = $('#loadStatus');
+      const loader = document.querySelector('.loader');
+      const shareUrl = $('#shareUrl');
+      const copyShare = $('#copyShare');
       const referralSection = $('#referralSection');
       const meetingHeadingEl = $('#meetingHeading');
       const resultsBody = $('#resultsBody');
       const noteResultsBody = $('#noteResultsBody');
-      const joinProspectsListViewer = $('#joinProspectsListViewer');
-      const joinProspectsViewerSection = $('#joinProspectsViewer');
-      const shareUrl = $('#shareUrl');
-      const copyShare = $('#copyShare');
       const toggleFacebook = $('#toggleFacebook');
       const toggleGoogle = $('#toggleGoogle');
 
-      // Get open all buttons
-      const openAllLinkedIn = document.getElementById('openAllLinkedIn');
-      const openAllFacebook = document.getElementById('openAllFacebook');
-      const openAllGoogle = document.getElementById('openAllGoogle');
+      const openAllLinkedIn = $('#openAllLinkedIn');
+      const openAllFacebook = $('#openAllFacebook');
+      const openAllGoogle = $('#openAllGoogle');
+      const shareRow = document.querySelector('.share-row');
+
+      let showFacebook = false;
+      let showGoogle = false;
 
       function updatePlatformVisibility() {
-        document.body.dataset.showFacebook = toggleFacebook.checked ? "true" : "false";
-        document.body.dataset.showGoogle = toggleGoogle.checked ? "true" : "false";
-        // Show/hide facebook/google columns
-        document.querySelectorAll('.col-facebook').forEach(col => col.style.display = toggleFacebook.checked ? '' : 'none');
-        document.querySelectorAll('.col-google').forEach(col => col.style.display = toggleGoogle.checked ? '' : 'none');
+        document.body.dataset.showFacebook = showFacebook ? 'true' : 'false';
+        document.body.dataset.showGoogle = showGoogle ? 'true' : 'false';
+        toggleFacebook.checked = showFacebook;
+        toggleGoogle.checked = showGoogle;
       }
-      toggleFacebook.addEventListener('change', updatePlatformVisibility);
-      toggleGoogle.addEventListener('change', updatePlatformVisibility);
 
-      // Util for parsing CSV (robust for tab or comma)
-      function parseCSV(str) {
-        // Handle Google Sheets tabular CSV (sometimes tab, sometimes comma)
-        let lines = str.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
-        if (!lines.length) return {specific: [], notes: [], join: [], meeting: "", date: ""};
-        // Tab-separated? (your sample is tab, not comma)
-        let delimiter = lines[0].indexOf('\t') !== -1 ? '\t' : ',';
-        let header = lines[0].split(delimiter).map(h => h.trim().toLowerCase());
-        let find = name => {
-          name = name.toLowerCase();
-          return header.findIndex(h => h === name);
-        };
-        let memberIdx = find('member');
-        let idealReferralIdx = find('ideal referral');
-        let notesIdx = find('notes');
-        let companyIdx = find('company');
-        let out = { specific: [], notes: [], join: [], meeting: "", date: "" };
-        for (let i = 1; i < lines.length; i++) {
-          let cols = lines[i].split(delimiter).map(x => x.trim());
-          if ((cols[idealReferralIdx]||"").trim()) {
-            out.specific.push({
-              requestor: cols[memberIdx]||"",
-              name: cols[idealReferralIdx]||"",
-              organization: companyIdx !== -1 ? cols[companyIdx]||"" : ""
-            });
-          }
-          if ((cols[notesIdx]||"").trim()) {
-            out.notes.push({
-              requestor: cols[memberIdx]||"",
-              note: cols[notesIdx]||""
-            });
-          }
+      toggleFacebook.addEventListener('change', () => {
+        showFacebook = toggleFacebook.checked;
+        updatePlatformVisibility();
+      });
+
+      toggleGoogle.addEventListener('change', () => {
+        showGoogle = toggleGoogle.checked;
+        updatePlatformVisibility();
+      });
+
+      function parseSheetResponse(response) {
+        if (!response || response.status !== 'ok' || !response.table) {
+          const message = response && response.errors && response.errors[0] && response.errors[0].detailed_message
+            ? response.errors[0].detailed_message
+            : 'No valid data found';
+          throw new Error(message);
         }
+
+        const cols = response.table.cols || [];
+        const rows = response.table.rows || [];
+        if (!rows.length) throw new Error('No valid data found');
+
+        const header = cols.map(col => (col.label || col.id || '').trim().toLowerCase());
+        const find = name => header.findIndex(h => h === name.toLowerCase());
+
+        const memberIdx = find('member');
+        const idealReferralIdx = find('ideal referral');
+        const notesIdx = find('notes');
+        const companyIdx = find('company');
+        const meetingIdx = find('meeting');
+        const dateIdx = find('date');
+        const out = { specific: [], notes: [], meeting: '', date: '' };
+
+        rows.forEach(row => {
+          const values = (row.c || []).map(cell => (cell && cell.v != null) ? String(cell.v) : '');
+          if (!out.meeting && meetingIdx !== -1) out.meeting = values[meetingIdx] || '';
+          if (!out.date && dateIdx !== -1) out.date = values[dateIdx] || '';
+
+          const idealReferral = values[idealReferralIdx] || '';
+          if (idealReferral.trim()) {
+            out.specific.push({
+              requestor: values[memberIdx] || '',
+              name: idealReferral,
+              organization: companyIdx !== -1 ? values[companyIdx] || '' : ''
+            });
+          }
+
+          const note = values[notesIdx] || '';
+          if (note.trim()) {
+            out.notes.push({
+              requestor: values[memberIdx] || '',
+              note
+            });
+          }
+        });
+
         return out;
       }
+
       function searchUrls(q) {
-        let label = q.trim();
-        let clean = label.replace(/\s+/g, ' ').replace(/\s*,\s*/g, ' ');
+        const label = q.trim();
+        const clean = label.replace(/\s+/g, ' ').replace(/\s*,\s*/g, ' ');
         return {
+          label,
           liUrl: 'https://www.linkedin.com/search/results/all?keywords=' + encodeURIComponent(clean),
           fbUrl: 'https://www.facebook.com/search/top?q=' + encodeURIComponent(clean),
-          gUrl: 'https://www.google.com/search?q=' + encodeURIComponent(clean),
-          label
+          gUrl: 'https://www.google.com/search?q=' + encodeURIComponent(clean)
         };
       }
+
       function render(data) {
-        // Meeting heading
-        let parts = [];
-        if(data.meeting) parts.push(data.meeting);
-        if(data.date) {
-          let ymd = data.date.split('-');
-          if (ymd.length==3) {
-            let d = new Date(Date.UTC(+ymd[0],+ymd[1]-1,+ymd[2]));
-            parts.push(d.toLocaleDateString(undefined,{year:'numeric',month:'long',day:'numeric'}));
+        const parts = [];
+        if (data.meeting) parts.push(data.meeting);
+        if (data.date) {
+          const ymd = data.date.split('-');
+          if (ymd.length === 3) {
+            const d = new Date(Date.UTC(+ymd[0], +ymd[1] - 1, +ymd[2]));
+            parts.push(d.toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' }));
           } else {
             parts.push(data.date);
           }
@@ -198,127 +576,144 @@
         meetingHeadingEl.textContent = parts.join(' — ');
         meetingHeadingEl.hidden = !parts.length;
 
-        // Specific referrals
         resultsBody.innerHTML = '';
         data.specific.forEach(item => {
-          let row = document.createElement('tr');
-          let q = `${item.name||""} ${item.organization||""}`.trim();
-          let { label, liUrl, fbUrl, gUrl } = searchUrls(q);
-          // Requestor
-          let tdReq = document.createElement('td'); tdReq.textContent = item.requestor || "";
+          const row = document.createElement('tr');
+          const q = `${item.name || ''} ${item.organization || ''}`.trim();
+          const { label, liUrl, fbUrl, gUrl } = searchUrls(q);
+
+          const tdReq = document.createElement('td');
+          tdReq.textContent = item.requestor || '';
           row.appendChild(tdReq);
-          // LinkedIn
-          let tdLi = document.createElement('td');
-          tdLi.innerHTML = `<a href="${liUrl}" target="_blank" rel="noopener">
-              <img class="icon" src="https://cdn-icons-png.flaticon.com/512/174/174857.png" alt="LinkedIn" />${label}</a>`;
+
+          const tdLi = document.createElement('td');
+          tdLi.innerHTML = `<a href="${liUrl}" target="_blank" rel="noopener"><img class="icon" src="https://cdn-icons-png.flaticon.com/512/174/174857.png" alt="LinkedIn" />${label}</a>`;
           row.appendChild(tdLi);
-          // Facebook
-          let tdFb = document.createElement('td'); tdFb.className = "col-facebook";
-          tdFb.innerHTML = `<a href="${fbUrl}" target="_blank" rel="noopener">
-              <img class="icon" src="https://cdn-icons-png.flaticon.com/512/733/733547.png" alt="Facebook" />${label}</a>`;
+
+          const tdFb = document.createElement('td');
+          tdFb.className = 'col-facebook';
+          tdFb.innerHTML = `<a href="${fbUrl}" target="_blank" rel="noopener"><img class="icon" src="https://cdn-icons-png.flaticon.com/512/733/733547.png" alt="Facebook" />${label}</a>`;
           row.appendChild(tdFb);
-          // Google
-          let tdG = document.createElement('td'); tdG.className = "col-google";
-          tdG.innerHTML = `<a href="${gUrl}" target="_blank" rel="noopener">
-              <img class="icon" src="https://www.google.com/favicon.ico" alt="Google" />${label}</a>`;
+
+          const tdG = document.createElement('td');
+          tdG.className = 'col-google';
+          tdG.innerHTML = `<a href="${gUrl}" target="_blank" rel="noopener"><img class="icon" src="https://www.google.com/favicon.ico" alt="Google" />${label}</a>`;
           row.appendChild(tdG);
+
           resultsBody.appendChild(row);
         });
 
-        // General notes
         noteResultsBody.innerHTML = '';
         data.notes.forEach(item => {
-          let row = document.createElement('tr');
-          let tdReq = document.createElement('td'); tdReq.textContent = item.requestor || "";
-          let tdNote = document.createElement('td'); tdNote.textContent = item.note || "";
-          row.appendChild(tdReq); row.appendChild(tdNote);
+          const row = document.createElement('tr');
+          const tdReq = document.createElement('td');
+          tdReq.textContent = item.requestor || '';
+          const tdNote = document.createElement('td');
+          tdNote.textContent = item.note || '';
+          row.appendChild(tdReq);
+          row.appendChild(tdNote);
           noteResultsBody.appendChild(row);
         });
 
-        // Prospects
-        joinProspectsListViewer.innerHTML = '';
-        (data.join||[]).forEach(term => {
-          if (!term.trim()) return;
-          let url = 'https://www.linkedin.com/search/results/people/?keywords='+encodeURIComponent(term.trim())+'&network=%5B%22F%22%5D&geoUrn=%5B%22101165590%22%5D';
-          let li = document.createElement('li');
-          li.innerHTML = `<a href="${url}" target="_blank" rel="noopener">
-              <img src="https://cdn-icons-png.flaticon.com/512/174/174857.png" alt="LinkedIn" class="icon"/>${term.trim()}</a>`;
-          joinProspectsListViewer.appendChild(li);
-        });
-        joinProspectsViewerSection.hidden = !(data.join && data.join.length);
-
-        referralSection.style.display = '';
+        referralSection.hidden = false;
         updatePlatformVisibility();
-        setShareUrl();
       }
-      function setShareUrl() {
-        let sheetUrl = (sheetUrlInput.value || '').trim();
-        if(sheetUrl) {
-          let url = new URL(window.location.href.split('#')[0]);
-          url.search = "?sheet=" + encodeURIComponent(sheetUrl);
-          shareUrl.value = url.toString();
-        } else {
-          shareUrl.value = "";
-        }
+
+      function getSheetDetails(input) {
+        const trimmed = input.trim();
+        const urlMatch = trimmed.match(/\/spreadsheets\/d\/([^/]+)/);
+        const sheetId = urlMatch ? urlMatch[1] : trimmed.match(/^[A-Za-z0-9_-]+$/) ? trimmed : '';
+        if (!sheetId) return null;
+        const gidMatch = trimmed.match(/[?&#]gid=([^&#]+)/);
+        return {
+          sheetId,
+          gid: gidMatch ? gidMatch[1] : '0'
+        };
       }
-      copyShare.addEventListener('click', async ()=> {
-        try {
-          await navigator.clipboard.writeText(shareUrl.value);
-        } catch(_) {
-          shareUrl.select();
-          document.execCommand('copy');
+
+      function buildShareUrl(details) {
+        const share = new URL(window.location.href.split('#')[0]);
+        share.search = '?sheetId=' + encodeURIComponent(details.sheetId);
+        if (details.gid && details.gid !== '0') {
+          share.searchParams.set('gid', details.gid);
         }
-      });
-      // Accept param from ?sheet=
-      function tryAutoLoadSheetFromParam() {
-        const params = new URLSearchParams(window.location.search);
-        const surl = params.get('sheet');
-        if(surl) {
-          sheetUrlInput.value = surl;
-          loadReferralSheet(surl);
-          setShareUrl();
-        }
+        return share.toString();
       }
-      function convertGoogleSheetUrl(url) {
-        // Convert share link to CSV export URL, if not already.
-        const re = /\/spreadsheets\/d\/([^\/]+)/;
-        const m = url.match(re);
-        if (!m) return url;
-        const sheetId = m[1];
-        return `https://docs.google.com/spreadsheets/d/${sheetId}/export?format=csv`;
+
+      function buildGoogleSheetQueryUrl(details) {
+        const gid = encodeURIComponent(details.gid || '0');
+        const sheetId = details.sheetId;
+        const callback = '__bniSheetCallback_' + Date.now() + '_' + Math.random().toString(36).slice(2);
+        const baseUrl = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?gid=${gid}&tqx=out:json;responseHandler:${callback}`;
+        return { callback, baseUrl };
       }
-      function loadReferralSheet(url) {
-        let csvUrl = url;
-        if (url.includes('docs.google.com/spreadsheets') && !url.endsWith('export?format=csv')) {
-          csvUrl = convertGoogleSheetUrl(url);
+
+      function loadReferralSheet(input) {
+        const details = getSheetDetails(input);
+        if (!details) {
+          loadStatus.textContent = 'Paste a valid Google Sheet link or spreadsheet id.';
+          return;
         }
-        loadStatus.textContent = "Loading…";
-        fetch(csvUrl)
-          .then(resp => {
-            if (!resp.ok) throw new Error('Could not fetch sheet');
-            return resp.text();
-          })
-          .then(csv => {
-            let parsed = parseCSV(csv);
-            if (!parsed.specific.length && !parsed.notes.length) throw new Error("No valid data found");
+
+        const query = buildGoogleSheetQueryUrl(details);
+        loadStatus.textContent = 'Loading…';
+        loadBtn.disabled = true;
+
+        const script = document.createElement('script');
+        let finished = false;
+
+        const cleanup = () => {
+          if (script.parentNode) script.parentNode.removeChild(script);
+          try { delete window[query.callback]; } catch (_) { window[query.callback] = undefined; }
+          loadBtn.disabled = false;
+        };
+
+        window[query.callback] = function(response) {
+          if (finished) return;
+          finished = true;
+          try {
+            const parsed = parseSheetResponse(response);
+            if (!parsed.specific.length && !parsed.notes.length) {
+              throw new Error('No valid data found');
+            }
             loadStatus.textContent = '';
             render(parsed);
-          })
-          .catch(err => {
-            referralSection.style.display = "none";
-            loadStatus.textContent = "Error: " + err.message;
-          });
-      }
-      loadBtn.addEventListener('click', () => {
-        let url = (sheetUrlInput.value||"").trim();
-        if(!url) { loadStatus.textContent="Enter sheet URL"; return; }
-        loadReferralSheet(url);
-        setShareUrl();
-      });
-      sheetUrlInput.addEventListener('input', ()=>{ loadStatus.textContent=""; setShareUrl(); });
-      tryAutoLoadSheetFromParam();
+            loader.hidden = true;
+            shareUrl.value = buildShareUrl(details);
+            shareRow.style.display = 'flex';
+          } catch (err) {
+            referralSection.hidden = true;
+            loadStatus.textContent = 'Error: ' + err.message;
+          } finally {
+            cleanup();
+          }
+        };
 
-      // "Open All" button logic
+        script.onerror = () => {
+          if (finished) return;
+          finished = true;
+          referralSection.hidden = true;
+          loadStatus.textContent = 'Error: Could not load the Google Sheet.';
+          cleanup();
+        };
+
+        script.src = query.baseUrl;
+        document.head.appendChild(script);
+      }
+
+      loadBtn.addEventListener('click', () => {
+        const input = (sheetUrlInput.value || '').trim();
+        if (!input) {
+          loadStatus.textContent = 'Paste a Google Sheet URL or spreadsheet id first.';
+          return;
+        }
+        loadReferralSheet(input);
+      });
+
+      sheetUrlInput.addEventListener('keydown', e => {
+        if (e.key === 'Enter') loadBtn.click();
+      });
+
       function openAllLinks(platform) {
         const rows = Array.from(document.querySelectorAll('#resultsBody tr'));
         const selectorMap = {
@@ -328,20 +723,37 @@
         };
         const selector = selectorMap[platform];
         if (!selector) return;
-        const links = [];
         rows.forEach(row => {
-          if (row.style.display === 'none') return; // skip hidden rows
           const cell = row.querySelector(selector);
-          if (cell && cell.offsetParent !== null) links.push(cell.href);
+          if (cell && cell.offsetParent !== null) window.open(cell.href, '_blank');
         });
-        if (links.length) {
-          links.forEach(href => window.open(href, '_blank'));
-        }
       }
+
       openAllLinkedIn.addEventListener('click', () => openAllLinks('linkedin'));
       openAllFacebook.addEventListener('click', () => openAllLinks('facebook'));
       openAllGoogle.addEventListener('click', () => openAllLinks('google'));
 
+      copyShare.addEventListener('click', async () => {
+        try {
+          await navigator.clipboard.writeText(shareUrl.value);
+        } catch (_) {
+          shareUrl.select();
+          document.execCommand('copy');
+        }
+      });
+
+      function loadFromParams() {
+        const params = new URLSearchParams(window.location.search);
+        const sheetId = params.get('sheetId') || params.get('sheet');
+        if (!sheetId) return;
+        const gid = params.get('gid') || '0';
+        const input = gid && gid !== '0' ? `${sheetId}#gid=${gid}` : sheetId;
+        sheetUrlInput.value = input;
+        loadReferralSheet(input);
+      }
+
+      updatePlatformVisibility();
+      loadFromParams();
     })();
   </script>
 </body>
