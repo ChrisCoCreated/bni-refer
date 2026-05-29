@@ -1,0 +1,348 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>BNI Referral Contact Viewer</title>
+  <style>
+    :root { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; }
+    * { box-sizing: border-box; }
+    body { margin: 0; padding: 24px; background: #fff; color: #111; }
+    h1 { margin: 0 0 8px }
+    p.hint { margin: 0 0 16px; color: #555 }
+    .meeting-heading { margin: 0 0 16px; font-size: 16px; font-weight: 600; color: #444; }
+    /* ...rest of your provided CSS unchanged... */
+    /* Keep as from your last supplied page for full fidelity */
+    .icon {
+      width: 18px;
+      height: 18px;
+      vertical-align: middle;
+      margin-right: 4px;
+      object-fit: contain;
+    }
+    .open-all-row {
+      margin: 0 0 8px 0;
+      display: flex;
+      gap: 8px;
+    }
+    .open-all-row button {
+      font-size: 13px;
+      padding: 4px 10px;
+      border-radius: 4px;
+      border: 1px solid #ddd;
+      background: #f5f5f5;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <h1>BNI Referral Contact Viewer</h1>
+  <p>Paste your <b>public Google Sheet CSV export URL</b> to display the latest referrals. <span style="font-size:12px;color:#888;">(Share as CSV: File → Export → CSV)</span></p>
+  <div class="row" style="margin-bottom:1.5em;">
+    <input id="sheetUrl" type="text" placeholder="Paste Google Sheet CSV export URL" style="flex:1 1 300px;min-width:150px;">
+    <button id="loadSheet" type="button">Load Sheet</button>
+    <span id="loadStatus" style="margin-left:10px;color:#b91c1c;"></span>
+  </div>
+
+  <section id="referralSection" style="display:none;">
+    <h3 id="meetingHeading" class="meeting-heading" hidden></h3>
+    <div class="platform-filters" aria-label="Search platform visibility">
+      <label><input id="toggleFacebook" type="checkbox" />Show Facebook</label>
+      <label><input id="toggleGoogle" type="checkbox" />Show Google</label>
+    </div>
+
+    <!-- Open All Buttons -->
+    <div class="open-all-row">
+      <button id="openAllLinkedIn" type="button">Open All LinkedIn</button>
+      <button id="openAllFacebook" type="button">Open All Facebook</button>
+      <button id="openAllGoogle" type="button">Open All Google</button>
+    </div>
+
+    <h3 id="specificResultsHeading" class="editor-subheading">Specific referrals</h3>
+    <div id="specificResultsWrapper" class="table-wrapper">
+      <table id="results" aria-live="polite">
+        <thead>
+          <tr>
+            <th>Requester</th>
+            <th>LinkedIn</th>
+            <th class="col-facebook">Facebook</th>
+            <th class="col-google">Google</th>
+          </tr>
+        </thead>
+        <tbody id="resultsBody"></tbody>
+      </table>
+    </div>
+    <h3 id="noteResultsHeading" class="editor-subheading">General Referals</h3>
+    <div id="noteResultsWrapper" class="table-wrapper">
+      <table id="noteResults" aria-live="polite">
+        <thead>
+          <tr>
+            <th>Requester</th>
+            <th>General note</th>
+          </tr>
+        </thead>
+        <tbody id="noteResultsBody"></tbody>
+      </table>
+    </div>
+
+    <section id="joinProspectsViewer" class="prospects" hidden>
+      <h3>Find people to join us</h3>
+      <p class="hint">Open these LinkedIn searches to invite potential visitors from your first-degree network.</p>
+      <ul class="join-prospects-list" id="joinProspectsListViewer"></ul>
+    </section>
+
+    <div class="row">
+      <button id="copyShare">Copy link to share this list</button>
+      <input id="shareUrl" type="text" readonly placeholder="Shareable URL will appear here" />
+    </div>
+    <p class="hint">Copy the link and share with the rest of the chapter to save you all time and increase referrals.</p>
+  </section>
+
+  <!-- Marketing section (same as your current, content omitted for brevity) -->
+  <section class="marketing">
+    <!-- ... your marketing-item divs ... -->
+  </section>
+  <div class="footer">
+    Built with referrals in mind by <a href="https://bnikent.co.uk/en-GB/memberdetails?encryptedMemberId=Q88w1PE3FMylGImDTiEfrQ%3D%3D&cmsv3=true&name=Chris+Gage" target="_blank" rel="noopener">Chris G[...]
+  </div>
+  <script>
+    (function() {
+      const $ = sel => document.querySelector(sel);
+      const sheetUrlInput = $('#sheetUrl');
+      const loadBtn = $('#loadSheet');
+      const loadStatus = $('#loadStatus');
+      const referralSection = $('#referralSection');
+      const meetingHeadingEl = $('#meetingHeading');
+      const resultsBody = $('#resultsBody');
+      const noteResultsBody = $('#noteResultsBody');
+      const joinProspectsListViewer = $('#joinProspectsListViewer');
+      const joinProspectsViewerSection = $('#joinProspectsViewer');
+      const shareUrl = $('#shareUrl');
+      const copyShare = $('#copyShare');
+      const toggleFacebook = $('#toggleFacebook');
+      const toggleGoogle = $('#toggleGoogle');
+
+      // Get open all buttons
+      const openAllLinkedIn = document.getElementById('openAllLinkedIn');
+      const openAllFacebook = document.getElementById('openAllFacebook');
+      const openAllGoogle = document.getElementById('openAllGoogle');
+
+      function updatePlatformVisibility() {
+        document.body.dataset.showFacebook = toggleFacebook.checked ? "true" : "false";
+        document.body.dataset.showGoogle = toggleGoogle.checked ? "true" : "false";
+        // Show/hide facebook/google columns
+        document.querySelectorAll('.col-facebook').forEach(col => col.style.display = toggleFacebook.checked ? '' : 'none');
+        document.querySelectorAll('.col-google').forEach(col => col.style.display = toggleGoogle.checked ? '' : 'none');
+      }
+      toggleFacebook.addEventListener('change', updatePlatformVisibility);
+      toggleGoogle.addEventListener('change', updatePlatformVisibility);
+
+      // Util for parsing CSV (robust for tab or comma)
+      function parseCSV(str) {
+        // Handle Google Sheets tabular CSV (sometimes tab, sometimes comma)
+        let lines = str.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+        if (!lines.length) return {specific: [], notes: [], join: [], meeting: "", date: ""};
+        // Tab-separated? (your sample is tab, not comma)
+        let delimiter = lines[0].indexOf('\t') !== -1 ? '\t' : ',';
+        let header = lines[0].split(delimiter).map(h => h.trim().toLowerCase());
+        let find = name => {
+          name = name.toLowerCase();
+          return header.findIndex(h => h === name);
+        };
+        let memberIdx = find('member');
+        let idealReferralIdx = find('ideal referral');
+        let notesIdx = find('notes');
+        let companyIdx = find('company');
+        let out = { specific: [], notes: [], join: [], meeting: "", date: "" };
+        for (let i = 1; i < lines.length; i++) {
+          let cols = lines[i].split(delimiter).map(x => x.trim());
+          if ((cols[idealReferralIdx]||"").trim()) {
+            out.specific.push({
+              requestor: cols[memberIdx]||"",
+              name: cols[idealReferralIdx]||"",
+              organization: companyIdx !== -1 ? cols[companyIdx]||"" : ""
+            });
+          }
+          if ((cols[notesIdx]||"").trim()) {
+            out.notes.push({
+              requestor: cols[memberIdx]||"",
+              note: cols[notesIdx]||""
+            });
+          }
+        }
+        return out;
+      }
+      function searchUrls(q) {
+        let label = q.trim();
+        let clean = label.replace(/\s+/g, ' ').replace(/\s*,\s*/g, ' ');
+        return {
+          liUrl: 'https://www.linkedin.com/search/results/all?keywords=' + encodeURIComponent(clean),
+          fbUrl: 'https://www.facebook.com/search/top?q=' + encodeURIComponent(clean),
+          gUrl: 'https://www.google.com/search?q=' + encodeURIComponent(clean),
+          label
+        };
+      }
+      function render(data) {
+        // Meeting heading
+        let parts = [];
+        if(data.meeting) parts.push(data.meeting);
+        if(data.date) {
+          let ymd = data.date.split('-');
+          if (ymd.length==3) {
+            let d = new Date(Date.UTC(+ymd[0],+ymd[1]-1,+ymd[2]));
+            parts.push(d.toLocaleDateString(undefined,{year:'numeric',month:'long',day:'numeric'}));
+          } else {
+            parts.push(data.date);
+          }
+        }
+        meetingHeadingEl.textContent = parts.join(' — ');
+        meetingHeadingEl.hidden = !parts.length;
+
+        // Specific referrals
+        resultsBody.innerHTML = '';
+        data.specific.forEach(item => {
+          let row = document.createElement('tr');
+          let q = `${item.name||""} ${item.organization||""}`.trim();
+          let { label, liUrl, fbUrl, gUrl } = searchUrls(q);
+          // Requestor
+          let tdReq = document.createElement('td'); tdReq.textContent = item.requestor || "";
+          row.appendChild(tdReq);
+          // LinkedIn
+          let tdLi = document.createElement('td');
+          tdLi.innerHTML = `<a href="${liUrl}" target="_blank" rel="noopener">
+              <img class="icon" src="https://cdn-icons-png.flaticon.com/512/174/174857.png" alt="LinkedIn" />${label}</a>`;
+          row.appendChild(tdLi);
+          // Facebook
+          let tdFb = document.createElement('td'); tdFb.className = "col-facebook";
+          tdFb.innerHTML = `<a href="${fbUrl}" target="_blank" rel="noopener">
+              <img class="icon" src="https://cdn-icons-png.flaticon.com/512/733/733547.png" alt="Facebook" />${label}</a>`;
+          row.appendChild(tdFb);
+          // Google
+          let tdG = document.createElement('td'); tdG.className = "col-google";
+          tdG.innerHTML = `<a href="${gUrl}" target="_blank" rel="noopener">
+              <img class="icon" src="https://www.google.com/favicon.ico" alt="Google" />${label}</a>`;
+          row.appendChild(tdG);
+          resultsBody.appendChild(row);
+        });
+
+        // General notes
+        noteResultsBody.innerHTML = '';
+        data.notes.forEach(item => {
+          let row = document.createElement('tr');
+          let tdReq = document.createElement('td'); tdReq.textContent = item.requestor || "";
+          let tdNote = document.createElement('td'); tdNote.textContent = item.note || "";
+          row.appendChild(tdReq); row.appendChild(tdNote);
+          noteResultsBody.appendChild(row);
+        });
+
+        // Prospects
+        joinProspectsListViewer.innerHTML = '';
+        (data.join||[]).forEach(term => {
+          if (!term.trim()) return;
+          let url = 'https://www.linkedin.com/search/results/people/?keywords='+encodeURIComponent(term.trim())+'&network=%5B%22F%22%5D&geoUrn=%5B%22101165590%22%5D';
+          let li = document.createElement('li');
+          li.innerHTML = `<a href="${url}" target="_blank" rel="noopener">
+              <img src="https://cdn-icons-png.flaticon.com/512/174/174857.png" alt="LinkedIn" class="icon"/>${term.trim()}</a>`;
+          joinProspectsListViewer.appendChild(li);
+        });
+        joinProspectsViewerSection.hidden = !(data.join && data.join.length);
+
+        referralSection.style.display = '';
+        updatePlatformVisibility();
+        setShareUrl();
+      }
+      function setShareUrl() {
+        let sheetUrl = (sheetUrlInput.value || '').trim();
+        if(sheetUrl) {
+          let url = new URL(window.location.href.split('#')[0]);
+          url.search = "?sheet=" + encodeURIComponent(sheetUrl);
+          shareUrl.value = url.toString();
+        } else {
+          shareUrl.value = "";
+        }
+      }
+      copyShare.addEventListener('click', async ()=> {
+        try {
+          await navigator.clipboard.writeText(shareUrl.value);
+        } catch(_) {
+          shareUrl.select();
+          document.execCommand('copy');
+        }
+      });
+      // Accept param from ?sheet=
+      function tryAutoLoadSheetFromParam() {
+        const params = new URLSearchParams(window.location.search);
+        const surl = params.get('sheet');
+        if(surl) {
+          sheetUrlInput.value = surl;
+          loadReferralSheet(surl);
+          setShareUrl();
+        }
+      }
+      function convertGoogleSheetUrl(url) {
+        // Convert share link to CSV export URL, if not already.
+        const re = /\/spreadsheets\/d\/([^\/]+)/;
+        const m = url.match(re);
+        if (!m) return url;
+        const sheetId = m[1];
+        return `https://docs.google.com/spreadsheets/d/${sheetId}/export?format=csv`;
+      }
+      function loadReferralSheet(url) {
+        let csvUrl = url;
+        if (url.includes('docs.google.com/spreadsheets') && !url.endsWith('export?format=csv')) {
+          csvUrl = convertGoogleSheetUrl(url);
+        }
+        loadStatus.textContent = "Loading…";
+        fetch(csvUrl)
+          .then(resp => {
+            if (!resp.ok) throw new Error('Could not fetch sheet');
+            return resp.text();
+          })
+          .then(csv => {
+            let parsed = parseCSV(csv);
+            if (!parsed.specific.length && !parsed.notes.length) throw new Error("No valid data found");
+            loadStatus.textContent = '';
+            render(parsed);
+          })
+          .catch(err => {
+            referralSection.style.display = "none";
+            loadStatus.textContent = "Error: " + err.message;
+          });
+      }
+      loadBtn.addEventListener('click', () => {
+        let url = (sheetUrlInput.value||"").trim();
+        if(!url) { loadStatus.textContent="Enter sheet URL"; return; }
+        loadReferralSheet(url);
+        setShareUrl();
+      });
+      sheetUrlInput.addEventListener('input', ()=>{ loadStatus.textContent=""; setShareUrl(); });
+      tryAutoLoadSheetFromParam();
+
+      // "Open All" button logic
+      function openAllLinks(platform) {
+        const rows = Array.from(document.querySelectorAll('#resultsBody tr'));
+        const selectorMap = {
+          linkedin: 'td:nth-child(2) a',
+          facebook: 'td.col-facebook a',
+          google: 'td.col-google a'
+        };
+        const selector = selectorMap[platform];
+        if (!selector) return;
+        const links = [];
+        rows.forEach(row => {
+          if (row.style.display === 'none') return; // skip hidden rows
+          const cell = row.querySelector(selector);
+          if (cell && cell.offsetParent !== null) links.push(cell.href);
+        });
+        if (links.length) {
+          links.forEach(href => window.open(href, '_blank'));
+        }
+      }
+      openAllLinkedIn.addEventListener('click', () => openAllLinks('linkedin'));
+      openAllFacebook.addEventListener('click', () => openAllLinks('facebook'));
+      openAllGoogle.addEventListener('click', () => openAllLinks('google'));
+
+    })();
+  </script>
+</body>
+</html>

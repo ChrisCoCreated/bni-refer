@@ -1,0 +1,866 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>BNI Referral Presenter</title>
+  <style>
+    :root {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      --bni-red: #dc2626;
+      --text-dark: #1f2937;
+      --text-light: #6b7280;
+      --bg-white: #ffffff;
+      --bg-light-grey: #f9fafb;
+      --border-grey: #e5e7eb;
+      --accent-grey: #6b7280;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      background: var(--bg-white);
+      color: var(--text-dark);
+    }
+
+    /* Setup Screen */
+    .setup-screen {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 24px;
+      background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%);
+    }
+
+    .setup-container {
+      background: white;
+      border-radius: 12px;
+      padding: 32px;
+      max-width: 500px;
+      width: 100%;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    }
+
+    .setup-container h1 {
+      margin: 0 0 8px;
+      color: var(--text-dark);
+    }
+
+    .setup-container .hint {
+      margin: 0 0 24px;
+      color: var(--text-light);
+      font-size: 14px;
+    }
+
+    .setup-container input {
+      width: 100%;
+      padding: 12px;
+      margin-bottom: 16px;
+      border: 1px solid var(--border-grey);
+      border-radius: 8px;
+      font: inherit;
+      font-size: 16px;
+    }
+
+    .setup-container input:focus-visible {
+      outline: none;
+      border-color: var(--bni-red);
+      box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.14);
+    }
+
+    .setup-container button {
+      width: 100%;
+      padding: 12px;
+      background: var(--bni-red);
+      border: none;
+      border-radius: 8px;
+      color: white;
+      font-weight: 600;
+      font-size: 16px;
+      cursor: pointer;
+      transition: background 0.15s ease;
+    }
+
+    .setup-container button:hover {
+      background: #b91c1c;
+    }
+
+    .setup-container button:disabled {
+      background: #d1d5db;
+      cursor: not-allowed;
+    }
+
+    .status {
+      margin-top: 16px;
+      padding: 12px;
+      border-radius: 8px;
+      font-size: 14px;
+      display: none;
+    }
+
+    .status.show {
+      display: block;
+    }
+
+    .status.loading {
+      background: #fef2f2;
+      color: var(--bni-red);
+    }
+
+    .status.success {
+      background: #dcfce7;
+      color: #166534;
+    }
+
+    .status.error {
+      background: #fee2e2;
+      color: #b91c1c;
+    }
+
+    /* Presentation Screen */
+    .presentation-screen {
+      display: none;
+      flex-direction: column;
+      height: 100vh;
+      background: var(--bg-white);
+      color: var(--text-dark);
+      padding: 0;
+    }
+
+    .presentation-screen.active {
+      display: flex;
+    }
+
+    .presentation-content {
+      flex: 1;
+      display: grid;
+      grid-template-columns: 1fr;
+      grid-template-rows: auto auto 1fr auto;
+      padding: 40px 60px;
+      position: relative;
+      gap: 24px;
+    }
+
+    /* Header area with number badge and BNI Kent label */
+    .presentation-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      grid-column: 1;
+      grid-row: 1;
+    }
+
+    .presentation-number-badge {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 70px;
+      height: 70px;
+      background: var(--bni-red);
+      border-radius: 12px;
+      color: white;
+      font-size: 32px;
+      font-weight: bold;
+      box-shadow: 0 4px 12px rgba(220, 38, 38, 0.2);
+      flex-shrink: 0;
+    }
+
+    .presentation-branding {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 4px;
+    }
+
+    .bni-label {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--bni-red);
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+    }
+
+    .bni-kent {
+      font-size: 11px;
+      color: var(--text-light);
+    }
+
+    /* Member info section - secondary */
+    .presentation-member-section {
+      grid-column: 1;
+      grid-row: 2;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      justify-content: flex-start;
+    }
+
+    .presentation-member {
+      font-size: 42px;
+      font-weight: 700;
+      margin: 0;
+      line-height: 1.1;
+      color: var(--text-dark);
+    }
+
+    .presentation-company {
+      font-size: 22px;
+      color: var(--text-light);
+      margin: 0;
+      font-weight: 400;
+    }
+
+    /* Main referral section - PRIMARY FOCUS */
+    .presentation-referral-section {
+      grid-column: 1;
+      grid-row: 3;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 20px;
+    }
+
+    .referral-card {
+      background: var(--bg-light-grey);
+      border-left: 8px solid var(--bni-red);
+      padding: 40px 36px;
+      border-radius: 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    }
+
+    .referral-label {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--bni-red);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin: 0;
+    }
+
+    .presentation-ideal-referral {
+      font-size: 54px;
+      color: var(--text-dark);
+      margin: 0;
+      font-weight: 700;
+      line-height: 1.2;
+      letter-spacing: -0.5px;
+    }
+
+    .referral-prompt {
+      font-size: 20px;
+      color: var(--text-light);
+      margin: 8px 0 0 0;
+      font-weight: 500;
+      font-style: italic;
+    }
+
+    /* Footer with navigation */
+    .presentation-footer {
+      padding: 20px 60px;
+      border-top: 1px solid var(--border-grey);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: var(--bg-light-grey);
+      grid-column: 1;
+      grid-row: 4;
+    }
+
+    .next-section {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .next-indicator {
+      font-size: 11px;
+      color: var(--text-light);
+      text-transform: uppercase;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+    }
+
+    .next-info {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--text-dark);
+    }
+
+    .navigation {
+      display: flex;
+      gap: 16px;
+      align-items: center;
+    }
+
+    .nav-button {
+      background: white;
+      border: 1px solid var(--border-grey);
+      color: var(--text-dark);
+      padding: 9px 16px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 500;
+      transition: all 0.15s ease;
+    }
+
+    .nav-button:hover {
+      background: var(--bni-red);
+      color: white;
+      border-color: var(--bni-red);
+    }
+
+    .nav-button:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+
+    .keyboard-hint {
+      font-size: 11px;
+      color: var(--text-light);
+    }
+
+    /* Made with love footer */
+    .made-with-love {
+      position: fixed;
+      bottom: 0;
+      right: 0;
+      padding: 12px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 6px;
+      font-size: 12px;
+      color: var(--text-light);
+      pointer-events: none;
+    }
+
+    .made-with-love a {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      color: var(--text-dark);
+      text-decoration: none;
+      font-weight: 500;
+      transition: color 0.15s ease;
+      pointer-events: auto;
+    }
+
+    .made-with-love a:hover {
+      color: var(--bni-red);
+    }
+
+    .made-with-love img {
+      height: 16px;
+      width: auto;
+      object-fit: contain;
+    }
+
+    /* Loading Animation */
+    .spinner {
+      width: 24px;
+      height: 24px;
+      border: 3px solid rgba(220, 38, 38, 0.2);
+      border-top-color: var(--bni-red);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      display: inline-block;
+      margin-right: 8px;
+      vertical-align: middle;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    /* Responsive Design */
+    @media (max-width: 1024px) {
+      .presentation-content {
+        padding: 36px 48px;
+        gap: 20px;
+      }
+
+      .presentation-footer {
+        padding: 18px 48px;
+      }
+
+      .presentation-number-badge {
+        width: 65px;
+        height: 65px;
+        font-size: 30px;
+      }
+
+      .presentation-member {
+        font-size: 38px;
+      }
+
+      .presentation-company {
+        font-size: 20px;
+      }
+
+      .referral-card {
+        padding: 36px 32px;
+      }
+
+      .presentation-ideal-referral {
+        font-size: 48px;
+      }
+
+      .referral-prompt {
+        font-size: 18px;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .presentation-content {
+        padding: 32px 30px;
+        gap: 16px;
+        grid-template-rows: auto auto 1fr auto;
+      }
+
+      .presentation-footer {
+        padding: 16px 30px;
+        flex-direction: column;
+        gap: 12px;
+      }
+
+      .presentation-number-badge {
+        width: 60px;
+        height: 60px;
+        font-size: 28px;
+      }
+
+      .bni-label {
+        font-size: 11px;
+      }
+
+      .bni-kent {
+        font-size: 10px;
+      }
+
+      .presentation-member {
+        font-size: 34px;
+      }
+
+      .presentation-company {
+        font-size: 18px;
+      }
+
+      .referral-card {
+        padding: 30px 24px;
+        gap: 12px;
+      }
+
+      .referral-label {
+        font-size: 13px;
+      }
+
+      .presentation-ideal-referral {
+        font-size: 42px;
+      }
+
+      .referral-prompt {
+        font-size: 16px;
+      }
+
+      .navigation {
+        width: 100%;
+        justify-content: center;
+        gap: 12px;
+      }
+
+      .keyboard-hint {
+        display: none;
+      }
+
+      .next-section {
+        text-align: center;
+      }
+
+      .next-info {
+        font-size: 15px;
+      }
+
+      .nav-button {
+        padding: 8px 14px;
+        font-size: 12px;
+      }
+
+      .made-with-love {
+        padding: 10px 16px;
+        font-size: 11px;
+      }
+
+      .made-with-love img {
+        height: 14px;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .presentation-content {
+        padding: 24px 18px;
+        gap: 12px;
+      }
+
+      .presentation-footer {
+        padding: 12px 18px;
+      }
+
+      .presentation-header {
+        gap: 8px;
+      }
+
+      .presentation-number-badge {
+        width: 55px;
+        height: 55px;
+        font-size: 26px;
+      }
+
+      .bni-label {
+        font-size: 10px;
+      }
+
+      .bni-kent {
+        font-size: 9px;
+      }
+
+      .presentation-member {
+        font-size: 28px;
+      }
+
+      .presentation-company {
+        font-size: 16px;
+      }
+
+      .referral-card {
+        padding: 24px 20px;
+        gap: 10px;
+      }
+
+      .referral-label {
+        font-size: 12px;
+      }
+
+      .presentation-ideal-referral {
+        font-size: 32px;
+      }
+
+      .referral-prompt {
+        font-size: 14px;
+      }
+
+      .next-indicator {
+        font-size: 10px;
+      }
+
+      .next-info {
+        font-size: 14px;
+      }
+
+      .nav-button {
+        padding: 7px 12px;
+        font-size: 11px;
+      }
+
+      .made-with-love {
+        padding: 8px 12px;
+        font-size: 10px;
+      }
+
+      .made-with-love img {
+        height: 12px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Setup Screen -->
+  <div class="setup-screen" id="setupScreen">
+    <div class="setup-container">
+      <h1>📊 BNI Referral Presenter</h1>
+      <p class="hint">Paste your public Google Sheet URL to display member referrals in presentation mode.</p>
+      
+      <input
+        id="googleSheetUrl"
+        type="text"
+        placeholder="Paste public Google Sheet CSV export URL"
+        aria-label="Google Sheet URL"
+      />
+      
+      <p class="hint" style="font-size: 12px; margin-top: -8px;">
+        ℹ️ Share your sheet as CSV: File → Export → CSV
+      </p>
+
+      <button id="loadButton" type="button">Load & Present</button>
+      
+      <div class="status" id="status"></div>
+    </div>
+  </div>
+
+  <!-- Presentation Screen -->
+  <div class="presentation-screen" id="presentationScreen">
+    <div class="presentation-content">
+      <!-- Header with number badge and branding -->
+      <div class="presentation-header">
+        <div class="presentation-number-badge" id="memberNumber">1</div>
+        <div class="presentation-branding">
+          <div class="bni-label">BNI</div>
+          <div class="bni-kent">Kent</div>
+        </div>
+      </div>
+
+      <!-- Member info section - secondary -->
+      <div class="presentation-member-section">
+        <h2 class="presentation-member" id="memberName">Loading...</h2>
+        <p class="presentation-company" id="memberCompany"></p>
+      </div>
+
+      <!-- Main ideal referral section - PRIMARY FOCUS -->
+      <div class="presentation-referral-section">
+        <div class="referral-card">
+          <p class="referral-label">Ideal Referral</p>
+          <p class="presentation-ideal-referral" id="memberIdealReferral"></p>
+          <p class="referral-prompt">Who do you know who can introduce me?</p>
+        </div>
+      </div>
+
+      <!-- Footer with navigation -->
+      <div class="presentation-footer">
+        <div class="next-section">
+          <div class="next-indicator">Up Next:</div>
+          <div class="next-info">
+            <span id="nextNumber">—</span> <span id="nextName">—</span>
+          </div>
+        </div>
+
+        <div class="navigation">
+          <button class="nav-button" id="prevButton" aria-label="Previous">← Prev</button>
+          <span class="keyboard-hint">← → arrow keys</span>
+          <button class="nav-button" id="nextButton" aria-label="Next">Next →</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Made with love footer -->
+    <div class="made-with-love">
+      <span>Made with ❤️ by</span>
+      <a href="https://thrivehomecare.co.uk" target="_blank" rel="noopener" aria-label="Visit Thrive Homecare">
+        <img src="https://static.wixstatic.com/media/3cbab2_a584714b048842648b34615dd1dc792a~mv2.png/v1/fill/w_478,h_240,al_c,q_85,usm_0.66_1.00_0.01,enc_avif,quality_auto/thrive-logo.png" alt="Thrive Homecare" />
+        <span>Thrive Homecare</span>
+      </a>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      // State
+      let data = [];
+      let currentIndex = 0;
+
+      // Elements
+      const setupScreen = document.getElementById('setupScreen');
+      const presentationScreen = document.getElementById('presentationScreen');
+      const googleSheetUrlInput = document.getElementById('googleSheetUrl');
+      const loadButton = document.getElementById('loadButton');
+      const status = document.getElementById('status');
+      const memberNumber = document.getElementById('memberNumber');
+      const memberName = document.getElementById('memberName');
+      const memberCompany = document.getElementById('memberCompany');
+      const memberIdealReferral = document.getElementById('memberIdealReferral');
+      const nextNumber = document.getElementById('nextNumber');
+      const nextName = document.getElementById('nextName');
+      const prevButton = document.getElementById('prevButton');
+      const nextButton = document.getElementById('nextButton');
+
+      // Utility functions
+      function showStatus(message, type) {
+        status.textContent = message;
+        status.className = `status show ${type}`;
+        if (type === 'loading') {
+          status.innerHTML = `<span class="spinner"></span>${message}`;
+        }
+      }
+
+      function hideStatus() {
+        status.className = 'status';
+      }
+
+      function clearStatus() {
+        status.innerHTML = '';
+      }
+
+      function shuffle(array) {
+        const shuffled = [...array];
+        for (let i = shuffled.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+        }
+        return shuffled;
+      }
+
+      function parseCSV(csv) {
+        const lines = csv.trim().split('\n');
+        if (lines.length < 2) {
+          throw new Error('No data found in sheet');
+        }
+
+        const headers = lines[0].split(',').map((h) => h.trim().toLowerCase());
+        const numberIdx = headers.indexOf('number');
+        const memberIdx = headers.indexOf('member');
+        const companyIdx = headers.indexOf('company');
+        const idealReferralIdx = headers.indexOf('ideal referral'); // Note: typo in spec
+
+        if (numberIdx === -1 || memberIdx === -1) {
+          throw new Error('Sheet must contain "number" and "member" columns');
+        }
+
+        const rows = [];
+        for (let i = 1; i < lines.length; i++) {
+          const line = lines[i].trim();
+          if (!line) continue;
+
+          const values = line.split(',').map((v) => v.trim());
+          rows.push({
+            number: values[numberIdx] || '',
+            member: values[memberIdx] || '',
+            company: companyIdx !== -1 ? values[companyIdx] || '' : '',
+            idealReferral:
+              idealReferralIdx !== -1 ? values[idealReferralIdx] || '' : '',
+          });
+        }
+
+        return rows;
+      }
+
+      function convertGoogleSheetUrl(url) {
+        // Convert share link to CSV export URL
+        const match = url.match(/\/spreadsheets\/d\/([^\/]+)/);
+        if (!match) {
+          throw new Error('Invalid Google Sheet URL');
+        }
+        const sheetId = match[1];
+        return `https://docs.google.com/spreadsheets/d/${sheetId}/export?format=csv`;
+      }
+
+      async function loadGoogleSheet(url) {
+        try {
+          showStatus('Loading sheet...', 'loading');
+
+          let csvUrl = url;
+          if (url.includes('docs.google.com/spreadsheets')) {
+            csvUrl = convertGoogleSheetUrl(url);
+          }
+
+          const response = await fetch(csvUrl);
+          if (!response.ok) {
+            throw new Error(`Failed to load sheet: ${response.statusText}`);
+          }
+
+          const csv = await response.text();
+          const rows = parseCSV(csv);
+
+          if (rows.length === 0) {
+            throw new Error('No data found in sheet');
+          }
+
+          showStatus('Randomizing...', 'loading');
+          data = shuffle(rows);
+
+          setTimeout(() => {
+            showStatus('Ready! Starting presentation...', 'success');
+            setTimeout(() => {
+              currentIndex = 0;
+              renderPresentation();
+              setupScreen.style.display = 'none';
+              presentationScreen.classList.add('active');
+              hideStatus();
+              clearStatus();
+            }, 500);
+          }, 300);
+        } catch (error) {
+          showStatus(`Error: ${error.message}`, 'error');
+          loadButton.disabled = false;
+        }
+      }
+
+      function renderPresentation() {
+        if (data.length === 0) return;
+
+        const current = data[currentIndex];
+        const next = data[(currentIndex + 1) % data.length];
+
+        memberNumber.textContent = current.number || '—';
+        memberName.textContent = current.member || 'Unknown';
+        memberCompany.textContent = current.company || '';
+        memberIdealReferral.textContent = current.idealReferral || '';
+
+        nextNumber.textContent = next.number || '—';
+        nextName.textContent = next.member || '—';
+
+        prevButton.disabled = data.length <= 1;
+        nextButton.disabled = data.length <= 1;
+      }
+
+      function goToNext() {
+        if (data.length > 1) {
+          currentIndex = (currentIndex + 1) % data.length;
+          renderPresentation();
+        }
+      }
+
+      function goToPrev() {
+        if (data.length > 1) {
+          currentIndex = (currentIndex - 1 + data.length) % data.length;
+          renderPresentation();
+        }
+      }
+
+      // Event listeners
+      loadButton.addEventListener('click', () => {
+        const url = googleSheetUrlInput.value.trim();
+        if (!url) {
+          showStatus('Please enter a Google Sheet URL', 'error');
+          return;
+        }
+        loadButton.disabled = true;
+        loadGoogleSheet(url);
+      });
+
+      nextButton.addEventListener('click', goToNext);
+      prevButton.addEventListener('click', goToPrev);
+
+      // Keyboard navigation
+      document.addEventListener('keydown', (e) => {
+        if (presentationScreen.classList.contains('active')) {
+          if (e.key === 'ArrowRight') {
+            goToNext();
+          } else if (e.key === 'ArrowLeft') {
+            goToPrev();
+          }
+        }
+      });
+
+      // Allow Enter to load sheet
+      googleSheetUrlInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+          loadButton.click();
+        }
+      });
+
+      // Set focus to input on load
+      googleSheetUrlInput.focus();
+    })();
+  </script>
+</body>
+</html>
