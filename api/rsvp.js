@@ -1,4 +1,4 @@
-const RECIPIENT_EMAIL = process.env.RSVP_TO_EMAIL || 'chris@thrivehomecare.co.uk';
+const RECIPIENT_EMAIL = 'chris@thrivehomecare.co.uk';
 
 function normalizeText(value) {
   return String(value || '').replace(/\r\n/g, '\n').trim();

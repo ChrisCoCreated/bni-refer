@@ -960,10 +960,6 @@
           'body=' + encodeURIComponent(body),
         ];
 
-        if (data.email) {
-          params.push('cc=' + encodeURIComponent(data.email));
-        }
-
         window.location.href = 'mailto:' + recipient + '?' + params.join('&');
       }
 
