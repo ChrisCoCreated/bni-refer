@@ -56,11 +56,12 @@ module.exports = async (req, res) => {
   const data = {
     fullName: normalizeText(body.fullName),
     email: normalizeText(body.email),
-    goals: normalizeText(body.goals),
+    selectedFriday: normalizeText(body.selectedFriday),
+    comments: normalizeText(body.comments),
   };
 
-  if (!data.fullName || !data.email || !data.goals) {
-    return res.status(400).json({ error: 'Name, email, and goals are required.' });
+  if (!data.fullName || !data.email || !data.selectedFriday) {
+    return res.status(400).json({ error: 'Name, email, and a Friday selection are required.' });
   }
 
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email)) {

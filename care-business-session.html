@@ -12,17 +12,20 @@
     :root {
       color-scheme: light;
       font-family: "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-      --bg: #fffaf4;
-      --bg-strong: #fff2ea;
-      --paper: rgba(255, 255, 255, 0.82);
+      --bg: #fff9f3;
+      --bg-strong: #fff2e6;
+      --paper: rgba(255, 255, 255, 0.9);
       --paper-solid: #ffffff;
-      --ink: #1f2937;
-      --muted: #6b7280;
-      --border: rgba(31, 41, 55, 0.12);
-      --accent: #dc2626;
-      --accent-deep: #991b1b;
-      --accent-soft: rgba(220, 38, 38, 0.12);
-      --shadow: 0 24px 70px rgba(31, 41, 55, 0.12);
+      --ink: #2b2f36;
+      --muted: #5f6673;
+      --border: rgba(43, 47, 54, 0.12);
+      --accent: #ca1f2b;
+      --accent-deep: #8f1720;
+      --accent-soft: rgba(202, 31, 43, 0.12);
+      --sun: #f4a53a;
+      --moss: #67b36b;
+      --sky: #1ea0c9;
+      --shadow: 0 24px 70px rgba(43, 47, 54, 0.12);
       --radius-xl: 30px;
       --radius-lg: 22px;
       --radius-md: 16px;
@@ -41,8 +44,10 @@
       min-height: 100vh;
       color: var(--ink);
       background:
-        radial-gradient(circle at top left, rgba(220, 38, 38, 0.14), transparent 28%),
-        radial-gradient(circle at top right, rgba(245, 158, 11, 0.15), transparent 24%),
+        radial-gradient(circle at 12% 10%, rgba(202, 31, 43, 0.14), transparent 26%),
+        radial-gradient(circle at 88% 14%, rgba(244, 165, 58, 0.16), transparent 22%),
+        radial-gradient(circle at 80% 82%, rgba(103, 179, 107, 0.14), transparent 22%),
+        radial-gradient(circle at 8% 84%, rgba(30, 160, 201, 0.1), transparent 18%),
         linear-gradient(180deg, var(--bg) 0%, var(--bg-strong) 100%);
     }
 
@@ -52,8 +57,8 @@
       inset: 0;
       pointer-events: none;
       background-image:
-        linear-gradient(rgba(31, 41, 55, 0.04) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(31, 41, 55, 0.04) 1px, transparent 1px);
+        linear-gradient(rgba(43, 47, 54, 0.035) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(43, 47, 54, 0.035) 1px, transparent 1px);
       background-size: 38px 38px;
       mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.55), transparent 82%);
     }
@@ -92,17 +97,23 @@
     }
 
     .brand-mark {
-      width: 42px;
-      height: 42px;
-      border-radius: 13px;
+      width: 58px;
+      height: 58px;
+      border-radius: 18px;
       display: grid;
       place-items: center;
-      background: linear-gradient(135deg, var(--accent) 0%, var(--accent-deep) 100%);
-      color: white;
-      font-weight: 800;
-      letter-spacing: 0.02em;
-      box-shadow: 0 14px 28px rgba(220, 38, 38, 0.28);
+      background: linear-gradient(135deg, #ffffff 0%, #fff7ef 100%);
+      border: 1px solid rgba(202, 31, 43, 0.12);
+      box-shadow: 0 14px 28px rgba(43, 47, 54, 0.08);
       flex-shrink: 0;
+      overflow: hidden;
+    }
+
+    .brand-mark img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      padding: 6px;
     }
 
     .brand-copy small {
@@ -122,10 +133,20 @@
       font-weight: 700;
     }
 
+    .brand-copy .brand-tagline {
+      display: block;
+      margin-top: 4px;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--accent);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
     .top-link {
       padding: 10px 14px;
       border-radius: 999px;
-      border: 1px solid rgba(31, 41, 55, 0.12);
+      border: 1px solid rgba(202, 31, 43, 0.12);
       background: rgba(255, 255, 255, 0.72);
       text-decoration: none;
       font-size: 14px;
@@ -136,7 +157,7 @@
 
     .top-link:hover {
       transform: translateY(-1px);
-      border-color: rgba(220, 38, 38, 0.35);
+      border-color: rgba(202, 31, 43, 0.35);
       color: var(--accent);
     }
 
@@ -145,8 +166,9 @@
       overflow: hidden;
       padding: 32px;
       border-radius: var(--radius-xl);
-      border: 1px solid rgba(31, 41, 55, 0.08);
-      background: linear-gradient(135deg, rgba(255, 255, 255, 0.88), rgba(255, 255, 255, 0.72));
+      border: 1px solid rgba(43, 47, 54, 0.08);
+      background:
+        linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(255, 248, 241, 0.92));
       backdrop-filter: blur(16px);
       box-shadow: var(--shadow);
     }
@@ -164,7 +186,7 @@
       height: 240px;
       right: -120px;
       top: -120px;
-      background: radial-gradient(circle, rgba(220, 38, 38, 0.18), transparent 65%);
+      background: radial-gradient(circle, rgba(202, 31, 43, 0.18), transparent 65%);
     }
 
     .hero::after {
@@ -172,7 +194,7 @@
       height: 220px;
       left: -130px;
       bottom: -140px;
-      background: radial-gradient(circle, rgba(245, 158, 11, 0.14), transparent 65%);
+      background: radial-gradient(circle, rgba(244, 165, 58, 0.14), transparent 65%);
     }
 
     .eyebrow {
@@ -181,7 +203,7 @@
       gap: 8px;
       padding: 9px 13px;
       border-radius: 999px;
-      background: rgba(220, 38, 38, 0.08);
+      background: rgba(202, 31, 43, 0.08);
       color: var(--accent-deep);
       font-size: 12px;
       font-weight: 700;
@@ -220,8 +242,8 @@
       margin-top: 18px;
       padding: 14px 16px;
       border-radius: var(--radius-md);
-      background: rgba(31, 41, 55, 0.03);
-      border: 1px solid rgba(31, 41, 55, 0.08);
+      background: rgba(202, 31, 43, 0.05);
+      border: 1px solid rgba(202, 31, 43, 0.08);
       color: var(--ink);
       font-size: 0.98rem;
       line-height: 1.6;
@@ -230,9 +252,9 @@
     .hero-card {
       padding: 20px;
       border-radius: var(--radius-lg);
-      background: rgba(255, 255, 255, 0.76);
-      border: 1px solid rgba(31, 41, 55, 0.08);
-      box-shadow: 0 18px 40px rgba(31, 41, 55, 0.08);
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(255, 250, 245, 0.95));
+      border: 1px solid rgba(43, 47, 54, 0.08);
+      box-shadow: 0 18px 40px rgba(43, 47, 54, 0.08);
     }
 
     .hero-card h2 {
@@ -251,7 +273,7 @@
       justify-content: space-between;
       gap: 18px;
       padding: 12px 0;
-      border-bottom: 1px solid rgba(31, 41, 55, 0.08);
+      border-bottom: 1px solid rgba(202, 31, 43, 0.08);
     }
 
     .meta-row:last-child {
@@ -304,12 +326,12 @@
     .button-primary {
       background: linear-gradient(135deg, var(--accent) 0%, var(--accent-deep) 100%);
       color: white;
-      box-shadow: 0 16px 26px rgba(220, 38, 38, 0.22);
+      box-shadow: 0 16px 26px rgba(202, 31, 43, 0.22);
     }
 
     .button-secondary {
       background: rgba(255, 255, 255, 0.84);
-      border-color: rgba(31, 41, 55, 0.12);
+      border-color: rgba(43, 47, 54, 0.12);
       color: var(--ink);
     }
 
@@ -323,10 +345,10 @@
     .panel {
       padding: 24px;
       border-radius: var(--radius-lg);
-      border: 1px solid rgba(31, 41, 55, 0.08);
+      border: 1px solid rgba(43, 47, 54, 0.08);
       background: var(--paper);
       backdrop-filter: blur(12px);
-      box-shadow: 0 16px 34px rgba(31, 41, 55, 0.08);
+      box-shadow: 0 16px 34px rgba(43, 47, 54, 0.08);
     }
 
     .panel h2 {
@@ -361,14 +383,14 @@
 
     .panel-invite {
       grid-column: span 3;
-      background: linear-gradient(180deg, rgba(255, 255, 255, 0.9), rgba(255, 248, 245, 0.9));
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.95), rgba(255, 248, 242, 0.95));
     }
 
     .callout {
       padding: 16px;
       border-radius: var(--radius-md);
-      background: rgba(220, 38, 38, 0.08);
-      border: 1px solid rgba(220, 38, 38, 0.16);
+      background: linear-gradient(135deg, rgba(202, 31, 43, 0.08), rgba(244, 165, 58, 0.08));
+      border: 1px solid rgba(202, 31, 43, 0.16);
       color: var(--ink);
       line-height: 1.65;
     }
@@ -420,10 +442,10 @@
     .field input,
     .field textarea {
       width: 100%;
-      border: 1px solid rgba(31, 41, 55, 0.14);
+      border: 1px solid rgba(43, 47, 54, 0.14);
       border-radius: 14px;
       padding: 13px 14px;
-      background: rgba(255, 255, 255, 0.92);
+      background: rgba(255, 255, 255, 0.96);
       color: var(--ink);
       transition: border-color 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
     }
@@ -436,8 +458,8 @@
     .field input:focus,
     .field textarea:focus {
       outline: none;
-      border-color: rgba(220, 38, 38, 0.5);
-      box-shadow: 0 0 0 4px rgba(220, 38, 38, 0.12);
+      border-color: rgba(202, 31, 43, 0.5);
+      box-shadow: 0 0 0 4px rgba(202, 31, 43, 0.12);
     }
 
     .field-wide {
@@ -568,10 +590,16 @@
   <div class="page">
     <div class="topbar">
       <a class="brand" href="index.html" aria-label="Back to BNI Referral Tools">
-        <span class="brand-mark">BNI</span>
+        <span class="brand-mark">
+          <img
+            src="https://static.wixstatic.com/media/3cbab2_a584714b048842648b34615dd1dc792a~mv2.png/v1/fill/w_478,h_240,al_c,q_85,usm_0.66_1.00_0.01,enc_avif,quality_auto/thrive-logo.png"
+            alt="Thrive Homecare"
+          />
+        </span>
         <span class="brand-copy">
           <small>Member Event</small>
           <strong>Care Business Session</strong>
+          <span class="brand-tagline">Live life in colour</span>
         </span>
       </a>
 
@@ -603,6 +631,7 @@
 
         <aside class="hero-card" aria-label="Event summary">
           <h2>Event summary</h2>
+          <p style="margin-top:-6px;color:var(--muted);font-size:0.95rem;">A practical Thrive-style conversation about how to get started in care business.</p>
           <div class="event-meta">
             <div class="meta-row">
               <span>Date</span>
@@ -618,7 +647,7 @@
             </div>
             <div class="meta-row">
               <span>Format</span>
-              <strong>Online, email RSVP</strong>
+              <strong>Online, RSVP by email</strong>
             </div>
           </div>
         </aside>

@@ -100,7 +100,6 @@
       font-weight: 700;
     }
 
-    .join-link,
     .primary-button {
       display: inline-flex;
       align-items: center;
@@ -114,7 +113,6 @@
       transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
     }
 
-    .join-link:hover,
     .primary-button:hover {
       background: var(--red);
       border-color: var(--red);
@@ -207,11 +205,6 @@
       margin-top: 28px;
     }
 
-    .primary-button {
-      min-width: 176px;
-      min-height: 48px;
-    }
-
     .invite-panel {
       margin-top: 38px;
       padding-top: 30px;
@@ -234,6 +227,62 @@
       display: grid;
       gap: 14px;
       max-width: 720px;
+    }
+
+    .friday-picker {
+      display: grid;
+      gap: 10px;
+    }
+
+    .friday-picker-label {
+      font-weight: 700;
+      font-size: 14px;
+    }
+
+    .friday-options {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .friday-option {
+      position: relative;
+    }
+
+    .friday-option input {
+      position: absolute;
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .friday-option span {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 48px;
+      padding: 10px 12px;
+      border: 1px solid #cfcfcf;
+      background: var(--white);
+      color: var(--black);
+      text-align: center;
+      font-size: 14px;
+      font-weight: 700;
+      line-height: 1.25;
+      cursor: pointer;
+      transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
+    }
+
+    .friday-option input:checked + span {
+      background: var(--red);
+      border-color: var(--red);
+      color: var(--white);
+      box-shadow: 0 0 0 3px rgba(237, 21, 102, 0.14);
+    }
+
+    .friday-option input:focus-visible + span {
+      outline: none;
+      border-color: var(--red);
+      box-shadow: 0 0 0 3px rgba(237, 21, 102, 0.14);
     }
 
     .invite-grid {
@@ -424,7 +473,17 @@
         font-size: 21px;
       }
 
+      .friday-options {
+        grid-template-columns: 1fr 1fr;
+      }
+
       .invite-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 420px) {
+      .friday-options {
         grid-template-columns: 1fr;
       }
     }
@@ -448,7 +507,6 @@
       </nav>
       <div class="header-actions">
         <a class="call-link" href="tel:+441227935977">Call Us&nbsp; 01227 935977</a>
-        <a class="join-link" href="https://www.thrivehomecare.co.uk/carejobsinkent">Join Us!</a>
       </div>
     </div>
     <div class="mobile-bar">
@@ -498,9 +556,6 @@
         <p>If you&rsquo;re in that 45-minute radius of Canterbury, click the link and enter your details and I&rsquo;ll add you to the list for the next meeting.</p>
         <p>If you&rsquo;re not quite that close, have a look at the BNI website for details of your nearest meeting &ndash; <a href="https://bnikent.co.uk/">Kent</a>, <a href="https://bni.co.uk/en-GB/index">UK</a>, or <a href="https://www.bni.com/">Worldwide</a>.</p>
 
-        <div class="button-row">
-          <a class="primary-button" href="https://outlook.office.com/bookwithme/user/bc3a376c512941d593b4acc787b3e998@planwithcare.co.uk/meetingtype/rFJ_4EQyW0efQXd2aITgPw2?bookingcode=dba9ec8a-a2c0-43d5-b028-2e617c866c98&amp;anonymous&amp;ismsaljsauthenabled&amp;ep=mlink">Join a meeting</a>
-        </div>
       </article>
 
       <aside class="hero-image" aria-hidden="true">
@@ -511,7 +566,7 @@
     <section class="invite-panel" aria-labelledby="invite-title">
       <h2 id="invite-title">Request an invite</h2>
       <p class="invite-hint">
-        Send this through the backend route and it will go to Chris at chris@thrivehomecare.co.uk.
+        Let Chris know which Friday you'd like to join.
       </p>
 
       <form class="invite-form" id="inviteForm">
@@ -525,9 +580,14 @@
             <input id="email" name="email" type="email" autocomplete="email" required />
           </div>
         </div>
+        <div class="friday-picker" aria-labelledby="friday-label">
+          <div class="friday-picker-label" id="friday-label">Which Friday would you like to join? *</div>
+          <div class="friday-options" id="fridayOptions"></div>
+          <input type="hidden" id="selectedFriday" name="selectedFriday" value="" />
+        </div>
         <div class="field">
-          <label for="goals">What would you like to ask Chris? *</label>
-          <textarea id="goals" name="goals" required></textarea>
+          <label for="comments">Anything else for Chris?</label>
+          <textarea id="comments" name="comments" placeholder="Add any extra notes or questions."></textarea>
         </div>
         <div class="invite-actions">
           <button class="primary-button" type="submit" id="inviteSubmit">Send request</button>
@@ -568,6 +628,47 @@
       const form = document.getElementById('inviteForm');
       const status = document.getElementById('inviteStatus');
       const submitButton = document.getElementById('inviteSubmit');
+      const fridayOptions = document.getElementById('fridayOptions');
+      const selectedFriday = document.getElementById('selectedFriday');
+
+      const fridayList = Array.from({ length: 4 }, function(_, index) {
+        const date = new Date();
+        const targetDay = 5;
+        const currentDay = date.getDay();
+        const daysUntilFriday = (targetDay - currentDay + 7) % 7 || 7;
+        date.setHours(0, 0, 0, 0);
+        date.setDate(date.getDate() + daysUntilFriday + (index * 7));
+        return date;
+      });
+
+      function formatFriday(date) {
+        return date.toLocaleDateString('en-GB', {
+          weekday: 'short',
+          day: 'numeric',
+          month: 'short',
+          year: 'numeric',
+        });
+      }
+
+      fridayOptions.innerHTML = fridayList.map(function(date, index) {
+        const id = 'friday-' + index;
+        const label = formatFriday(date);
+        return (
+          '<label class="friday-option" for="' + id + '">' +
+            '<input type="radio" id="' + id + '" name="fridayChoice" value="' + label + '" ' + (index === 0 ? 'checked' : '') + ' />' +
+            '<span>' + label + '</span>' +
+          '</label>'
+        );
+      }).join('');
+
+      selectedFriday.value = formatFriday(fridayList[0]);
+
+      fridayOptions.addEventListener('change', function(event) {
+        const target = event.target;
+        if (target && target.name === 'fridayChoice') {
+          selectedFriday.value = target.value;
+        }
+      });
 
       function setStatus(message, isError) {
         status.textContent = message;
@@ -579,8 +680,9 @@
         const body = [
           'Name: ' + data.fullName,
           'Email: ' + data.email,
+          'Friday: ' + data.selectedFriday,
           '',
-          data.goals,
+          data.comments || '(no extra comments)',
         ].join('\n');
 
         const params = [
@@ -614,11 +716,12 @@
         const data = {
           fullName: form.fullName.value.trim(),
           email: form.email.value.trim(),
-          goals: form.goals.value.trim(),
+          selectedFriday: selectedFriday.value.trim(),
+          comments: form.comments.value.trim(),
         };
 
-        if (!data.fullName || !data.email || !data.goals) {
-          setStatus('Please fill in your name, email, and message.', true);
+        if (!data.fullName || !data.email || !data.selectedFriday) {
+          setStatus('Please fill in your name, email, and choose a Friday.', true);
           return;
         }
 
