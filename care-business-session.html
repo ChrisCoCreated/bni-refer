@@ -3,10 +3,10 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Care Business Session RSVP</title>
+  <title>Get Your Foot in the Door with Care Business</title>
   <meta
     name="description"
-    content="Register interest for the BNI care business insights session on 26 July 2026 at 12:00 pm."
+    content="Register interest for the BNI session on 26 July 2026 at 12:00 pm and get your foot in the door with care business."
   />
   <style>
     :root {
@@ -582,7 +582,7 @@
       <div class="eyebrow">BNI members only</div>
       <div class="hero-grid">
         <div class="hero-copy">
-          <h1>Care business insights, without the jargon.</h1>
+          <h1>Get your foot in the door with care business</h1>
           <p>
             I have put 45 minutes in the diary for BNI members who want to get into care businesses,
             ask better questions, and learn from someone who has led and worked in a lot of care businesses.
@@ -952,7 +952,22 @@
         }
       }
 
-      async function sendRsvp(data) {
+      function openMailDraft(recipient, data) {
+        const subject = eventTitle + ' RSVP - ' + data.fullName;
+        const body = buildEmailBody(data);
+        const params = [
+          'subject=' + encodeURIComponent(subject),
+          'body=' + encodeURIComponent(body),
+        ];
+
+        if (data.email) {
+          params.push('cc=' + encodeURIComponent(data.email));
+        }
+
+        window.location.href = 'mailto:' + recipient + '?' + params.join('&');
+      }
+
+      async function fetchRecipient(data) {
         const response = await fetch('/api/rsvp', {
           method: 'POST',
           headers: {
@@ -963,10 +978,13 @@
 
         const payload = await response.json().catch(() => ({}));
         if (!response.ok) {
-          throw new Error(payload.error || 'We could not send your RSVP right now.');
+          const message = payload.detail || payload.error || 'We could not load the RSVP recipient right now.';
+          const error = new Error(message);
+          error.status = payload.status || response.status;
+          throw error;
         }
 
-        return payload;
+        return payload.recipient;
       }
 
       form.addEventListener('submit', async (event) => {
@@ -980,13 +998,14 @@
         }
 
         submitButton.disabled = true;
-        submitButton.textContent = 'Sending...';
-        setStatus('Sending your RSVP to Chris...', 'loading');
+        submitButton.textContent = 'Preparing...';
+        setStatus('Preparing your email draft...', 'loading');
 
         try {
           saveDraft();
-          await sendRsvp(data);
-          setStatus('Thanks. Your RSVP has been emailed to Chris.', 'success');
+          const recipient = await fetchRecipient(data);
+          openMailDraft(recipient, data);
+          setStatus('Your email draft is open. Send it from your mail app to finish registering.', 'success');
           try {
             localStorage.removeItem(storageKey);
           } catch (storageError) {
@@ -994,7 +1013,7 @@
           }
           form.reset();
         } catch (error) {
-          setStatus(error.message || 'We could not send your RSVP right now.', 'error');
+          setStatus(error.message || 'We could not prepare your email draft right now.', 'error');
         } finally {
           submitButton.disabled = false;
           submitButton.textContent = 'Send RSVP';
