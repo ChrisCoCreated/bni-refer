@@ -555,7 +555,6 @@
         const memberIdx = find('member');
         const idealReferralIdx = find('ideal referral');
         const notesIdx = find('notes');
-        const companyIdx = find('company');
         const meetingIdx = find('meeting');
         const dateIdx = find('date');
         const out = { specific: [], notes: [], meeting: '', date: '' };
@@ -569,8 +568,7 @@
           if (idealReferral.trim()) {
             out.specific.push({
               requestor: values[memberIdx] || '',
-              name: idealReferral,
-              organization: companyIdx !== -1 ? values[companyIdx] || '' : ''
+              name: idealReferral
             });
           }
 
@@ -615,7 +613,7 @@
         resultsBody.innerHTML = '';
         data.specific.forEach(item => {
           const row = document.createElement('tr');
-          const q = `${item.name || ''} ${item.organization || ''}`.trim();
+          const q = (item.name || '').trim();
           const { label, liUrl, fbUrl, gUrl } = searchUrls(q);
 
           const tdReq = document.createElement('td');
