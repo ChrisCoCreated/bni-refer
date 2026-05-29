@@ -666,8 +666,8 @@
             <h2>Register your place</h2>
           </div>
           <p class="form-hint">
-            Fill in the form and we will prepare a prefilled email to <strong>hello@thrivehomecare.co.uk</strong>.
-            That keeps the process quick, and it also makes sure the organiser gets the questions you want them to see.
+            Fill in the form and we will send your RSVP straight to Chris. That keeps the process quick,
+            and it also makes sure he gets the questions you want him to see.
           </p>
         </div>
 
@@ -717,14 +717,13 @@
           </div>
 
           <div class="form-actions">
-            <button class="button button-primary" type="submit">Open email draft</button>
+            <button class="button button-primary" type="submit" id="submitButton">Send RSVP</button>
             <button class="button button-secondary" id="copyRsvp" type="button">Copy RSVP text</button>
           </div>
         </form>
 
         <p class="fine-print">
-          The page does not require an account. Your details are used only to prefill the message and
-          calendar invite on this device.
+          The page does not require an account. Your details are used only to send the RSVP and store a draft on this device.
         </p>
 
         <div class="status" id="status" aria-live="polite"></div>
@@ -733,13 +732,12 @@
 
     <footer class="footer">
       <span>Need help sharing it with the chapter? Copy the invite text and send it in your BNI chat or email.</span>
-      <span>Contact: <a href="mailto:hello@thrivehomecare.co.uk">hello@thrivehomecare.co.uk</a></span>
+      <span>Questions go straight to Chris once you submit the form.</span>
     </footer>
   </div>
 
   <script>
     (function () {
-      const organizerEmail = 'hello@thrivehomecare.co.uk';
       const storageKey = 'bni-care-business-session-rsvp';
       const eventTitle = 'BNI Care Business Insights';
       const eventDescription =
@@ -755,6 +753,7 @@
       const copyInviteButton = document.getElementById('copyInvite');
       const copyRsvpButton = document.getElementById('copyRsvp');
       const addToCalendarButton = document.getElementById('addToCalendar');
+      const submitButton = document.getElementById('submitButton');
 
       const fields = {
         fullName: document.getElementById('fullName'),
@@ -819,7 +818,7 @@
 
       function buildEmailBody(data) {
         const sections = [
-          'Hi,',
+          'Hi Chris,',
           '',
           'I would like to register for the ' + eventTitle + ' on ' + displayDate + ' at ' + displayTime + '.',
           '',
@@ -953,21 +952,24 @@
         }
       }
 
-      function openMailDraft(data) {
-        const subject = eventTitle + ' RSVP - ' + data.fullName;
-        const body = buildEmailBody(data);
-        const mailto = new URL('mailto:' + organizerEmail);
+      async function sendRsvp(data) {
+        const response = await fetch('/api/rsvp', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(data),
+        });
 
-        mailto.searchParams.set('subject', subject);
-        mailto.searchParams.set('body', body);
-        if (data.email) {
-          mailto.searchParams.set('cc', data.email);
+        const payload = await response.json().catch(() => ({}));
+        if (!response.ok) {
+          throw new Error(payload.error || 'We could not send your RSVP right now.');
         }
 
-        window.location.href = mailto.toString();
+        return payload;
       }
 
-      form.addEventListener('submit', (event) => {
+      form.addEventListener('submit', async (event) => {
         event.preventDefault();
 
         const data = getFormData();
@@ -977,9 +979,26 @@
           return;
         }
 
-        saveDraft();
-        setStatus('Opening your email draft now. If it does not open, use the copy button below.', 'success');
-        openMailDraft(data);
+        submitButton.disabled = true;
+        submitButton.textContent = 'Sending...';
+        setStatus('Sending your RSVP to Chris...', 'loading');
+
+        try {
+          saveDraft();
+          await sendRsvp(data);
+          setStatus('Thanks. Your RSVP has been emailed to Chris.', 'success');
+          try {
+            localStorage.removeItem(storageKey);
+          } catch (storageError) {
+            // Ignore storage errors on cleanup.
+          }
+          form.reset();
+        } catch (error) {
+          setStatus(error.message || 'We could not send your RSVP right now.', 'error');
+        } finally {
+          submitButton.disabled = false;
+          submitButton.textContent = 'Send RSVP';
+        }
       });
 
       Object.values(fields).forEach((field) => {
@@ -1002,7 +1021,7 @@
       });
 
       loadDraft();
-      setStatus('Ready when you are. Fill in the form and open the email draft.', 'info');
+      setStatus('Ready when you are. Fill in the form and send your RSVP to Chris.', 'info');
     })();
   </script>
 </body>
