@@ -8,24 +8,27 @@
     name="description"
     content="Register interest for the BNI session on 26 July 2026 at 1:30 pm and get your foot in the door with care business."
   />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
   <style>
     :root {
       color-scheme: light;
-      font-family: "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-      --bg: #fff9f3;
-      --bg-strong: #fff2e6;
-      --paper: rgba(255, 255, 255, 0.9);
+      font-family: "Onest", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      --bg: #ffd23f;
+      --bg-strong: #ffdf69;
+      --paper: rgba(255, 255, 255, 0.94);
       --paper-solid: #ffffff;
-      --ink: #2b2f36;
-      --muted: #5f6673;
-      --border: rgba(43, 47, 54, 0.12);
-      --accent: #ca1f2b;
-      --accent-deep: #8f1720;
-      --accent-soft: rgba(202, 31, 43, 0.12);
-      --sun: #f4a53a;
-      --moss: #67b36b;
-      --sky: #1ea0c9;
-      --shadow: 0 24px 70px rgba(43, 47, 54, 0.12);
+      --ink: #111111;
+      --muted: #333333;
+      --border: rgba(17, 17, 17, 0.14);
+      --accent: #6d3ac6;
+      --accent-deep: #ce3f8f;
+      --accent-soft: rgba(109, 58, 198, 0.12);
+      --sun: #ffd23f;
+      --moss: #3aceac;
+      --sky: #1db9d2;
+      --shadow: 0 24px 70px rgba(17, 17, 17, 0.12);
       --radius-xl: 30px;
       --radius-lg: 22px;
       --radius-md: 16px;
@@ -44,10 +47,10 @@
       min-height: 100vh;
       color: var(--ink);
       background:
-        radial-gradient(circle at 12% 10%, rgba(202, 31, 43, 0.14), transparent 26%),
-        radial-gradient(circle at 88% 14%, rgba(244, 165, 58, 0.16), transparent 22%),
-        radial-gradient(circle at 80% 82%, rgba(103, 179, 107, 0.14), transparent 22%),
-        radial-gradient(circle at 8% 84%, rgba(30, 160, 201, 0.1), transparent 18%),
+        radial-gradient(circle at 12% 10%, rgba(109, 58, 198, 0.18), transparent 24%),
+        radial-gradient(circle at 88% 14%, rgba(206, 63, 143, 0.18), transparent 22%),
+        radial-gradient(circle at 80% 82%, rgba(58, 206, 172, 0.16), transparent 22%),
+        radial-gradient(circle at 8% 84%, rgba(29, 185, 210, 0.12), transparent 18%),
         linear-gradient(180deg, var(--bg) 0%, var(--bg-strong) 100%);
     }
 
@@ -57,8 +60,8 @@
       inset: 0;
       pointer-events: none;
       background-image:
-        linear-gradient(rgba(43, 47, 54, 0.035) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(43, 47, 54, 0.035) 1px, transparent 1px);
+        linear-gradient(rgba(17, 17, 17, 0.035) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(17, 17, 17, 0.035) 1px, transparent 1px);
       background-size: 38px 38px;
       mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.55), transparent 82%);
     }
@@ -102,9 +105,9 @@
       border-radius: 18px;
       display: grid;
       place-items: center;
-      background: linear-gradient(135deg, #ffffff 0%, #fff7ef 100%);
-      border: 1px solid rgba(202, 31, 43, 0.12);
-      box-shadow: 0 14px 28px rgba(43, 47, 54, 0.08);
+      background: linear-gradient(135deg, #ffffff 0%, #fff9df 100%);
+      border: 1px solid rgba(17, 17, 17, 0.12);
+      box-shadow: 0 14px 28px rgba(17, 17, 17, 0.08);
       flex-shrink: 0;
       overflow: hidden;
     }
@@ -122,7 +125,7 @@
       line-height: 1.2;
       letter-spacing: 0.18em;
       text-transform: uppercase;
-      color: var(--muted);
+      color: var(--ink);
       margin-bottom: 2px;
     }
 
@@ -146,8 +149,8 @@
     .top-link {
       padding: 10px 14px;
       border-radius: 999px;
-      border: 1px solid rgba(202, 31, 43, 0.12);
-      background: rgba(255, 255, 255, 0.72);
+      border: 1px solid rgba(17, 17, 17, 0.12);
+      background: rgba(255, 255, 255, 0.84);
       text-decoration: none;
       font-size: 14px;
       font-weight: 600;
@@ -157,7 +160,7 @@
 
     .top-link:hover {
       transform: translateY(-1px);
-      border-color: rgba(202, 31, 43, 0.35);
+      border-color: rgba(109, 58, 198, 0.35);
       color: var(--accent);
     }
 
@@ -166,9 +169,9 @@
       overflow: hidden;
       padding: 32px;
       border-radius: var(--radius-xl);
-      border: 1px solid rgba(43, 47, 54, 0.08);
+      border: 1px solid rgba(17, 17, 17, 0.08);
       background:
-        linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(255, 248, 241, 0.92));
+        linear-gradient(135deg, rgba(255, 255, 255, 0.96), rgba(255, 252, 232, 0.96));
       backdrop-filter: blur(16px);
       box-shadow: var(--shadow);
     }
@@ -186,7 +189,7 @@
       height: 240px;
       right: -120px;
       top: -120px;
-      background: radial-gradient(circle, rgba(202, 31, 43, 0.18), transparent 65%);
+      background: radial-gradient(circle, rgba(109, 58, 198, 0.2), transparent 65%);
     }
 
     .hero::after {
@@ -194,7 +197,7 @@
       height: 220px;
       left: -130px;
       bottom: -140px;
-      background: radial-gradient(circle, rgba(244, 165, 58, 0.14), transparent 65%);
+      background: radial-gradient(circle, rgba(206, 63, 143, 0.18), transparent 65%);
     }
 
     .eyebrow {
@@ -203,7 +206,7 @@
       gap: 8px;
       padding: 9px 13px;
       border-radius: 999px;
-      background: rgba(202, 31, 43, 0.08);
+      background: rgba(17, 17, 17, 0.08);
       color: var(--accent-deep);
       font-size: 12px;
       font-weight: 700;
@@ -242,8 +245,8 @@
       margin-top: 18px;
       padding: 14px 16px;
       border-radius: var(--radius-md);
-      background: rgba(202, 31, 43, 0.05);
-      border: 1px solid rgba(202, 31, 43, 0.08);
+      background: rgba(255, 255, 255, 0.74);
+      border: 1px solid rgba(17, 17, 17, 0.08);
       color: var(--ink);
       font-size: 0.98rem;
       line-height: 1.6;
@@ -252,9 +255,9 @@
     .hero-card {
       padding: 20px;
       border-radius: var(--radius-lg);
-      background: linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(255, 250, 245, 0.95));
-      border: 1px solid rgba(43, 47, 54, 0.08);
-      box-shadow: 0 18px 40px rgba(43, 47, 54, 0.08);
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(255, 252, 240, 0.98));
+      border: 1px solid rgba(17, 17, 17, 0.08);
+      box-shadow: 0 18px 40px rgba(17, 17, 17, 0.08);
     }
 
     .hero-card h2 {
@@ -273,7 +276,7 @@
       justify-content: space-between;
       gap: 18px;
       padding: 12px 0;
-      border-bottom: 1px solid rgba(202, 31, 43, 0.08);
+      border-bottom: 1px solid rgba(17, 17, 17, 0.08);
     }
 
     .meta-row:last-child {
@@ -326,12 +329,12 @@
     .button-primary {
       background: linear-gradient(135deg, var(--accent) 0%, var(--accent-deep) 100%);
       color: white;
-      box-shadow: 0 16px 26px rgba(202, 31, 43, 0.22);
+      box-shadow: 0 16px 26px rgba(109, 58, 198, 0.22);
     }
 
     .button-secondary {
-      background: rgba(255, 255, 255, 0.84);
-      border-color: rgba(43, 47, 54, 0.12);
+      background: rgba(255, 255, 255, 0.88);
+      border-color: rgba(17, 17, 17, 0.12);
       color: var(--ink);
     }
 
@@ -345,10 +348,10 @@
     .panel {
       padding: 24px;
       border-radius: var(--radius-lg);
-      border: 1px solid rgba(43, 47, 54, 0.08);
+      border: 1px solid rgba(17, 17, 17, 0.08);
       background: var(--paper);
       backdrop-filter: blur(12px);
-      box-shadow: 0 16px 34px rgba(43, 47, 54, 0.08);
+      box-shadow: 0 16px 34px rgba(17, 17, 17, 0.08);
     }
 
     .panel h2 {
@@ -383,14 +386,14 @@
 
     .panel-invite {
       grid-column: span 3;
-      background: linear-gradient(180deg, rgba(255, 255, 255, 0.95), rgba(255, 248, 242, 0.95));
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(255, 250, 220, 0.96));
     }
 
     .callout {
       padding: 16px;
       border-radius: var(--radius-md);
-      background: linear-gradient(135deg, rgba(202, 31, 43, 0.08), rgba(244, 165, 58, 0.08));
-      border: 1px solid rgba(202, 31, 43, 0.16);
+      background: linear-gradient(135deg, rgba(109, 58, 198, 0.08), rgba(206, 63, 143, 0.08), rgba(29, 185, 210, 0.08));
+      border: 1px solid rgba(17, 17, 17, 0.12);
       color: var(--ink);
       line-height: 1.65;
     }
@@ -442,7 +445,7 @@
     .field input,
     .field textarea {
       width: 100%;
-      border: 1px solid rgba(43, 47, 54, 0.14);
+      border: 1px solid rgba(17, 17, 17, 0.14);
       border-radius: 14px;
       padding: 13px 14px;
       background: rgba(255, 255, 255, 0.96);
@@ -458,8 +461,8 @@
     .field input:focus,
     .field textarea:focus {
       outline: none;
-      border-color: rgba(202, 31, 43, 0.5);
-      box-shadow: 0 0 0 4px rgba(202, 31, 43, 0.12);
+      border-color: rgba(109, 58, 198, 0.55);
+      box-shadow: 0 0 0 4px rgba(109, 58, 198, 0.12);
     }
 
     .field-wide {
@@ -518,6 +521,76 @@
       text-decoration: underline;
     }
 
+    .secondary-info {
+      grid-column: 1 / -1;
+      margin-top: 18px;
+      padding: 24px;
+      border-radius: var(--radius-lg);
+      border: 1px solid rgba(17, 17, 17, 0.08);
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(255, 250, 220, 0.96));
+      box-shadow: 0 16px 34px rgba(17, 17, 17, 0.08);
+    }
+
+    .secondary-info h2 {
+      margin: 0 0 22px;
+      font-size: 1.2rem;
+      line-height: 1.2;
+    }
+
+    .thrive-section {
+      display: grid;
+      grid-template-columns: 140px 1fr;
+      gap: 24px;
+      align-items: start;
+    }
+
+    .thrive-logo {
+      width: 140px;
+      height: 140px;
+      border-radius: 18px;
+      background: rgba(255, 255, 255, 0.96);
+      border: 1px solid rgba(17, 17, 17, 0.08);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      flex-shrink: 0;
+      box-shadow: 0 12px 24px rgba(17, 17, 17, 0.06);
+    }
+
+    .thrive-logo img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      padding: 12px;
+    }
+
+    .thrive-content h3 {
+      margin: 0 0 8px;
+      font-size: 1.2rem;
+      line-height: 1.2;
+    }
+
+    .thrive-content p {
+      margin: 0 0 12px;
+      color: var(--muted);
+      line-height: 1.65;
+    }
+
+    .thrive-content a {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--accent);
+      text-decoration: none;
+    }
+
+    .thrive-content a:hover {
+      text-decoration: underline;
+    }
+
     @media (max-width: 980px) {
       .hero-grid {
         grid-template-columns: 1fr;
@@ -561,6 +634,19 @@
       .panel-form-top {
         flex-direction: column;
       }
+
+      .secondary-info {
+        padding: 20px 18px;
+      }
+
+      .thrive-section {
+        grid-template-columns: 1fr;
+      }
+
+      .thrive-logo {
+        width: 120px;
+        height: 120px;
+      }
     }
 
     @media (max-width: 520px) {
@@ -597,9 +683,8 @@
           />
         </span>
         <span class="brand-copy">
-          <small>Member Event</small>
+          <small>BNI Members Event</small>
           <strong>Care Business Session</strong>
-          <span class="brand-tagline">Live life in colour</span>
         </span>
       </a>
 
@@ -756,6 +841,20 @@
         </p>
 
         <div class="status" id="status" aria-live="polite"></div>
+      </section>
+
+      <section class="secondary-info" aria-labelledby="thrive-about-title">
+        <h2 id="thrive-about-title">About Thrive Homecare</h2>
+        <div class="thrive-section">
+          <div class="thrive-logo">
+            <img src="https://static.wixstatic.com/media/3cbab2_a584714b048842648b34615dd1dc792a~mv2.png/v1/fill/w_478,h_240,al_c,q_85,usm_0.66_1.00_0.01,enc_avif,quality_auto/thrive-logo.png" alt="Thrive Homecare" />
+          </div>
+          <div class="thrive-content">
+            <h3>Thrive Homecare</h3>
+            <p>These tools were developed by <strong>Thrive Homecare</strong> to make fellow BNI members' lives that bit better. We provide compassionate homecare services for elderly people in the South East of England, helping them maintain independence and peace of mind for their families.</p>
+            <a href="https://thrivehomecare.co.uk" target="_blank" rel="noopener">Visit Thrive Homecare →</a>
+          </div>
+        </div>
       </section>
     </main>
 
