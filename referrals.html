@@ -3,6 +3,8 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <link rel="icon" href="favicon.ico" sizes="any" />
+  <link rel="icon" href="favicon.png" type="image/png" />
   <title>BNI Referral Contact Viewer</title>
   <style>
     :root {
@@ -609,7 +611,7 @@
         const clean = label.replace(/\s+/g, ' ').replace(/\s*,\s*/g, ' ');
         return {
           label,
-          liUrl: 'https://www.linkedin.com/search/results/all?keywords=' + encodeURIComponent(clean),
+          liUrl: 'https://www.linkedin.com/search/results/people/?keywords=' + encodeURIComponent(clean),
           fbUrl: 'https://www.facebook.com/search/top?q=' + encodeURIComponent(clean),
           gUrl: 'https://www.google.com/search?q=' + encodeURIComponent(clean)
         };
