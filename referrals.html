@@ -538,9 +538,23 @@
       const openAllFacebook = $('#openAllFacebook');
       const openAllGoogle = $('#openAllGoogle');
       const shareRow = document.querySelector('.share-row');
+      const lastSheetUrlKey = 'bni:lastGoogleSheetUrl';
 
       let showFacebook = false;
       let showGoogle = false;
+
+      function rememberSheetUrl(input) {
+        try {
+          localStorage.setItem(lastSheetUrlKey, input.trim());
+        } catch (_) {}
+      }
+
+      function fillRememberedSheetUrl() {
+        if (sheetUrlInput.value) return;
+        try {
+          sheetUrlInput.value = localStorage.getItem(lastSheetUrlKey) || '';
+        } catch (_) {}
+      }
 
       function updatePlatformVisibility() {
         document.body.dataset.showFacebook = showFacebook ? 'true' : 'false';
@@ -711,6 +725,7 @@
           return;
         }
 
+        rememberSheetUrl(input);
         const query = buildGoogleSheetQueryUrl(details);
         loadStatus.textContent = 'Loading…';
         loadBtn.disabled = true;
@@ -805,12 +820,14 @@
         const gid = params.get('gid') || '0';
         const input = gid && gid !== '0' ? `${sheetId}#gid=${gid}` : sheetId;
         sheetUrlInput.value = input;
+        rememberSheetUrl(input);
         loader.hidden = true;
         loadReferralSheet(input);
       }
 
       updatePlatformVisibility();
       loadFromParams();
+      fillRememberedSheetUrl();
     })();
   </script>
 </body>

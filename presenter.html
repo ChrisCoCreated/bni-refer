@@ -684,6 +684,7 @@
       const nextName = document.getElementById('nextName');
       const prevButton = document.getElementById('prevButton');
       const nextButton = document.getElementById('nextButton');
+      const lastSheetUrlKey = 'bni:lastGoogleSheetUrl';
 
       // Utility functions
       function showStatus(message, type) {
@@ -700,6 +701,18 @@
 
       function clearStatus() {
         status.innerHTML = '';
+      }
+
+      function rememberSheetUrl(url) {
+        try {
+          localStorage.setItem(lastSheetUrlKey, url.trim());
+        } catch (_) {}
+      }
+
+      function fillRememberedSheetUrl() {
+        try {
+          googleSheetUrlInput.value = localStorage.getItem(lastSheetUrlKey) || '';
+        } catch (_) {}
       }
 
       function shuffle(array) {
@@ -835,6 +848,7 @@
           showStatus('Please enter a Google Sheet URL', 'error');
           return;
         }
+        rememberSheetUrl(url);
         loadButton.disabled = true;
         loadGoogleSheet(url);
       });
@@ -861,6 +875,7 @@
       });
 
       // Set focus to input on load
+      fillRememberedSheetUrl();
       googleSheetUrlInput.focus();
     })();
   </script>
