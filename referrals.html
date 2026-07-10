@@ -48,6 +48,14 @@
       color: var(--text-light);
     }
 
+    .sheet-title {
+      margin: 10px 0 0;
+      font-size: 22px;
+      line-height: 1.2;
+      font-weight: 700;
+      color: var(--text-dark);
+    }
+
     .loader {
       display: flex;
       gap: 12px;
@@ -424,7 +432,8 @@
   <div class="container">
     <header class="header">
       <h1>BNI Referral Contact Viewer</h1>
-      <p>Paste a public Google Sheet link and load the latest referral list.</p>
+      <h2 id="sheetTitle" class="sheet-title" hidden></h2>
+      <p id="sheetHelper">Paste a public Google Sheet link and load the latest referral list.</p>
     </header>
 
     <div class="loader">
@@ -524,6 +533,8 @@
       const sheetUrlInput = $('#sheetUrl');
       const loadBtn = $('#loadSheet');
       const loadStatus = $('#loadStatus');
+      const sheetTitleEl = $('#sheetTitle');
+      const sheetHelper = $('#sheetHelper');
       const loader = document.querySelector('.loader');
       const shareUrl = $('#shareUrl');
       const copyShare = $('#copyShare');
@@ -542,6 +553,10 @@
 
       let showFacebook = false;
       let showGoogle = false;
+
+      function updateLoaderCopyVisibility() {
+        sheetHelper.hidden = loader.hidden || sheetUrlInput.hidden;
+      }
 
       function rememberSheetUrl(input) {
         try {
@@ -710,12 +725,48 @@
         return share.toString();
       }
 
-      function buildGoogleSheetQueryUrl(details) {
+      function buildGoogleSheetQueryUrl(details, range) {
         const gid = encodeURIComponent(details.gid || '0');
         const sheetId = details.sheetId;
         const callback = '__bniSheetCallback_' + Date.now() + '_' + Math.random().toString(36).slice(2);
-        const baseUrl = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?gid=${gid}&tqx=out:json;responseHandler:${callback}`;
+        let baseUrl = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?gid=${gid}&tqx=out:json;responseHandler:${callback}`;
+        if (range) {
+          baseUrl += '&range=' + encodeURIComponent(range);
+        }
         return { callback, baseUrl };
+      }
+
+      function loadSheetCell(details, range) {
+        return new Promise(resolve => {
+          const query = buildGoogleSheetQueryUrl(details, range);
+          const script = document.createElement('script');
+          let finished = false;
+
+          const cleanup = () => {
+            if (script.parentNode) script.parentNode.removeChild(script);
+            try { delete window[query.callback]; } catch (_) { window[query.callback] = undefined; }
+          };
+
+          window[query.callback] = function(response) {
+            if (finished) return;
+            finished = true;
+
+            const rows = response && response.table && response.table.rows ? response.table.rows : [];
+            const firstCell = rows[0] && rows[0].c && rows[0].c[0];
+            resolve(firstCell && firstCell.v != null ? String(firstCell.v).trim() : '');
+            cleanup();
+          };
+
+          script.onerror = () => {
+            if (finished) return;
+            finished = true;
+            resolve('');
+            cleanup();
+          };
+
+          script.src = query.baseUrl;
+          document.head.appendChild(script);
+        });
       }
 
       function loadReferralSheet(input) {
@@ -727,6 +778,7 @@
 
         rememberSheetUrl(input);
         const query = buildGoogleSheetQueryUrl(details);
+        const sheetNamePromise = loadSheetCell(details, 'C1').catch(() => '');
         loadStatus.textContent = 'Loading…';
         loadBtn.disabled = true;
 
@@ -739,7 +791,7 @@
           loadBtn.disabled = false;
         };
 
-        window[query.callback] = function(response) {
+        window[query.callback] = async function(response) {
           if (finished) return;
           finished = true;
           try {
@@ -747,9 +799,13 @@
             if (!parsed.specific.length && !parsed.notes.length) {
               throw new Error('No valid data found');
             }
+            const sheetName = await sheetNamePromise;
             loadStatus.textContent = '';
+            sheetTitleEl.textContent = sheetName;
+            sheetTitleEl.hidden = !sheetTitleEl.textContent;
             render(parsed);
             loader.hidden = true;
+            updateLoaderCopyVisibility();
             shareUrl.value = buildShareUrl(details);
             shareRow.style.display = 'flex';
           } catch (err) {
@@ -822,10 +878,12 @@
         sheetUrlInput.value = input;
         rememberSheetUrl(input);
         loader.hidden = true;
+        updateLoaderCopyVisibility();
         loadReferralSheet(input);
       }
 
       updatePlatformVisibility();
+      updateLoaderCopyVisibility();
       loadFromParams();
       fillRememberedSheetUrl();
     })();
