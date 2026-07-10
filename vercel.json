@@ -1,0 +1,14 @@
+{
+  "redirects": [
+    {
+      "source": "/canterbury-online",
+      "destination": "/referrals.html?sheetId=1j5fhPQS-Hp95Sj3Aw863DYuj09S8qoxlZ2aVHe2p7Rw",
+      "permanent": false
+    },
+    {
+      "source": "/canterbury-online/",
+      "destination": "/referrals.html?sheetId=1j5fhPQS-Hp95Sj3Aw863DYuj09S8qoxlZ2aVHe2p7Rw",
+      "permanent": false
+    }
+  ]
+}
