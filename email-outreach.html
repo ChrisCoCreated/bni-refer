@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <link rel="icon" href="favicon.ico" sizes="any" />
+  <link rel="icon" href="favicon.png" type="image/png" />
+  <title>BNI Email Outreach</title>
+  <style>
+    :root { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif; --red:#dc2626; --ink:#1f2937; --muted:#6b7280; --line:#e5e7eb; --soft:#f9fafb; }
+    * { box-sizing:border-box; }
+    body { margin:0; color:var(--ink); background:#fff; }
+    .wrap { max-width:1040px; margin:0 auto; padding:48px 24px 64px; }
+    .back { display:inline-block; margin-bottom:30px; color:var(--muted); font-size:14px; text-decoration:none; }
+    .back:hover { color:var(--red); }
+    h1 { margin:0; font-size:42px; letter-spacing:-.7px; }
+    .intro { max-width:680px; margin:12px 0 34px; color:var(--muted); font-size:17px; line-height:1.5; }
+    .grid { display:grid; grid-template-columns:1fr 1fr; gap:24px; align-items:start; }
+    .card { padding:26px; border:1px solid var(--line); border-radius:14px; background:#fff; }
+    .card h2 { margin:0 0 6px; font-size:20px; }
+    .hint { margin:0 0 20px; color:var(--muted); font-size:14px; line-height:1.45; }
+    label { display:block; margin:16px 0 7px; font-size:14px; font-weight:650; }
+    input, textarea { width:100%; padding:11px 12px; border:1px solid #d1d5db; border-radius:8px; color:var(--ink); background:white; font:inherit; }
+    textarea { min-height:136px; resize:vertical; line-height:1.45; }
+    input:focus, textarea:focus { outline:0; border-color:var(--red); box-shadow:0 0 0 3px rgba(220,38,38,.12); }
+    .template { grid-column:1 / -1; }
+    .tokens { margin:9px 0 0; color:var(--muted); font-size:12px; }
+    code { padding:2px 4px; border-radius:3px; background:var(--soft); color:#991b1b; }
+    .actions { display:flex; gap:12px; flex-wrap:wrap; align-items:center; margin-top:22px; }
+    button { border:0; border-radius:8px; padding:12px 17px; font:inherit; font-weight:650; cursor:pointer; }
+    .send { color:white; background:var(--red); }
+    .send:hover { background:#b91c1c; }
+    .secondary { color:var(--ink); background:var(--soft); border:1px solid var(--line); }
+    .summary { margin:0; color:var(--muted); font-size:14px; }
+    .status { min-height:21px; margin:14px 0 0; color:#166534; font-size:14px; }
+    .preview { grid-column:1 / -1; background:var(--soft); }
+    .email-preview { margin-top:16px; padding:18px; border:1px solid var(--line); border-radius:8px; background:white; font-size:14px; line-height:1.55; white-space:pre-wrap; overflow-wrap:anywhere; }
+    .email-preview strong { display:block; }
+    @media (max-width:700px) { .wrap { padding:30px 16px 48px; } h1 { font-size:32px; } .grid { grid-template-columns:1fr; } .template,.preview { grid-column:auto; } }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <a class="back" href="index.html">← All BNI tools</a>
+    <h1>Email outreach</h1>
+    <p class="intro">Paste recipients, personalise the message, then open a ready-to-send email for each address in your usual mail app.</p>
+
+    <div class="grid">
+      <section class="card">
+        <h2>Recipients</h2>
+        <p class="hint">One email address per line. Duplicates and invalid entries are skipped.</p>
+        <label for="recipients">Email addresses</label>
+        <textarea id="recipients" spellcheck="false" placeholder="office@example.co.uk&#10;hello@example.co.uk"></textarea>
+        <p class="summary" id="recipientCount">0 valid recipients</p>
+      </section>
+
+      <section class="card">
+        <h2>Your details</h2>
+        <p class="hint">These details are saved only in this browser for your next campaign.</p>
+        <label for="category">Category or service</label>
+        <input id="category" placeholder="e.g. flooring" />
+        <label for="sender">Your name</label>
+        <input id="sender" placeholder="e.g. Chris Gage" />
+      </section>
+
+      <section class="card template">
+        <h2>Email template</h2>
+        <p class="hint">Edit this whenever you like. Your wording is saved locally on this device.</p>
+        <label for="subject">Subject</label>
+        <input id="subject" />
+        <label for="body">Message</label>
+        <textarea id="body"></textarea>
+        <p class="tokens">Use <code>{{sender}}</code> (and, if useful, <code>{{category}}</code>) to insert the fields above. Personalise <code>[Name]</code> and <code>[Business name]</code> before sending.</p>
+        <div class="actions">
+          <button class="send" id="sendAll" type="button">Open emails</button>
+          <button class="secondary" id="resetTemplate" type="button">Restore default template</button>
+          <p class="summary">Each email opens separately, ready for you to review and send.</p>
+        </div>
+        <p class="status" id="status" role="status"></p>
+      </section>
+
+      <section class="card preview">
+        <h2>Preview</h2>
+        <div class="email-preview" id="preview"></div>
+      </section>
+    </div>
+  </main>
+  <script>
+    const defaults = {
+      subject: 'An invitation to meet local business owners',
+      body: `Hi [Name],\n\nI came across [Business name] and thought it would be good to connect.\n\nI’ve recently been finding a local business-development group a genuinely useful way to meet other business owners, build relationships and generate introductions. We meet briefly on Zoom at 6.15am on Fridays, so it is easy to fit around the working week.\n\nI’m inviting a small number of people I think may get value from visiting. There is no obligation at all — just an opportunity to introduce your business and see whether the group feels useful.\n\nThis short video gives a sense of what we are about: https://youtu.be/Qdkqa1ALlAY?is=Zm1xl6MwFmhr7hQJ\n\nWould you be open to joining me one Friday?\n\nKind regards,\n{{sender}}`
+    };
+    const storageKey = 'bni-email-outreach-v1';
+    const fields = ['recipients', 'category', 'sender', 'subject', 'body'].reduce((all, id) => ({ ...all, [id]: document.getElementById(id) }), {});
+    const status = document.getElementById('status');
+    const count = document.getElementById('recipientCount');
+    const preview = document.getElementById('preview');
+
+    function saved() { try { return JSON.parse(localStorage.getItem(storageKey)) || {}; } catch { return {}; } }
+    function fillTemplate(text) { return text.replaceAll('{{category}}', fields.category.value.trim() || '[category]').replaceAll('{{sender}}', fields.sender.value.trim() || '[your name]'); }
+    function recipients() {
+      const emails = fields.recipients.value.split(/[\n,;]+/).map(value => value.trim().toLowerCase()).filter(value => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value));
+      return [...new Set(emails)];
+    }
+    function update() {
+      const list = recipients();
+      count.textContent = `${list.length} valid recipient${list.length === 1 ? '' : 's'}`;
+      preview.innerHTML = `<strong>Subject: ${escapeHtml(fillTemplate(fields.subject.value))}</strong>\n${escapeHtml(fillTemplate(fields.body.value))}`;
+      localStorage.setItem(storageKey, JSON.stringify(Object.fromEntries(Object.entries(fields).map(([id, field]) => [id, field.value]))));
+    }
+    function escapeHtml(value) { const el = document.createElement('span'); el.textContent = value; return el.innerHTML; }
+    const data = saved();
+    Object.entries(fields).forEach(([id, field]) => field.value = data[id] ?? defaults[id] ?? '');
+    Object.values(fields).forEach(field => field.addEventListener('input', update));
+    document.getElementById('resetTemplate').addEventListener('click', () => { fields.subject.value = defaults.subject; fields.body.value = defaults.body; update(); status.textContent = 'Default template restored.'; });
+    document.getElementById('sendAll').addEventListener('click', () => {
+      const list = recipients();
+      if (!list.length) { status.textContent = 'Add at least one valid email address first.'; return; }
+      const subject = fillTemplate(fields.subject.value);
+      const body = fillTemplate(fields.body.value);
+      list.forEach(email => window.open(`mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`, '_blank'));
+      status.textContent = `${list.length} compose window${list.length === 1 ? '' : 's'} opened.`;
+    });
+    update();
+  </script>
+</body>
+</html>
