@@ -72,9 +72,9 @@
         <textarea id="body"></textarea>
         <p class="tokens">Use <code>{{sender}}</code> and <code>{{category}}</code> for your details. <code>{{recipientName}}</code> recognises clear names such as <em>david@…</em>; otherwise it uses “there”. <code>{{businessName}}</code> uses “your business”.</p>
         <div class="actions">
-          <button class="send" id="sendAll" type="button">Open emails</button>
+          <button class="send" id="sendAll" type="button">Open first email</button>
           <button class="secondary" id="resetTemplate" type="button">Restore default template</button>
-          <p class="summary">Each email opens separately, ready for you to review and send.</p>
+          <p class="summary">Open one prepared email at a time to review and send it in your usual mail app.</p>
         </div>
         <p class="status" id="status" role="status"></p>
       </section>
@@ -95,6 +95,9 @@
     const status = document.getElementById('status');
     const count = document.getElementById('recipientCount');
     const preview = document.getElementById('preview');
+    const sendButton = document.getElementById('sendAll');
+    let emailQueue = [];
+    let queueIndex = 0;
 
     function saved() { try { return JSON.parse(localStorage.getItem(storageKey)) || {}; } catch { return {}; } }
     const commonFirstNames = new Set(['adam','alex','alice','andrew','anna','ben','charlotte','chris','claire','dan','daniel','david','emma','frank','george','helen','ian','jack','james','jane','jason','john','jon','julia','karen','kate','lee','lisa','mark','matt','matthew','michael','nick','paul','peter','rachel','richard','robert','sarah','simon','steve','steven','susan','tom','victoria']);
@@ -107,7 +110,7 @@
     function fillTemplate(text, email = '') {
       return text
         .replaceAll('{{category}}', fields.category.value.trim() || '[category]')
-        .replaceAll('{{sender}}', fields.sender.value.trim() || '[your name]')
+        .replaceAll('{{sender}}', fields.sender.value.trim())
         .replaceAll('{{recipientName}}', recipientName(email))
         .replaceAll('{{businessName}}', 'your business');
     }
@@ -126,15 +129,20 @@
     Object.entries(fields).forEach(([id, field]) => field.value = data[id] ?? defaults[id] ?? '');
     Object.values(fields).forEach(field => field.addEventListener('input', update));
     document.getElementById('resetTemplate').addEventListener('click', () => { fields.subject.value = defaults.subject; fields.body.value = defaults.body; update(); status.textContent = 'Default template restored.'; });
-    document.getElementById('sendAll').addEventListener('click', () => {
+    sendButton.addEventListener('click', () => {
       const list = recipients();
       if (!list.length) { status.textContent = 'Add at least one valid email address first.'; return; }
-      list.forEach(email => {
-        const subject = fillTemplate(fields.subject.value, email);
-        const body = fillTemplate(fields.body.value, email);
-        window.open(`mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`, '_blank');
-      });
-      status.textContent = `${list.length} compose window${list.length === 1 ? '' : 's'} opened.`;
+      if (!emailQueue.length || queueIndex >= emailQueue.length) {
+        emailQueue = list;
+        queueIndex = 0;
+      }
+      const email = emailQueue[queueIndex];
+      const subject = fillTemplate(fields.subject.value, email);
+      const body = fillTemplate(fields.body.value, email);
+      queueIndex += 1;
+      sendButton.textContent = queueIndex < emailQueue.length ? `Open next email (${queueIndex + 1} of ${emailQueue.length})` : 'Start again';
+      status.textContent = `Opening email ${queueIndex} of ${emailQueue.length} for ${email}.`;
+      window.location.href = `mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
     });
     update();
   </script>
