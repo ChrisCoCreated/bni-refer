@@ -70,7 +70,7 @@
         <input id="subject" />
         <label for="body">Message</label>
         <textarea id="body"></textarea>
-        <p class="tokens">Use <code>{{sender}}</code> (and, if useful, <code>{{category}}</code>) to insert the fields above. Personalise <code>[Name]</code> and <code>[Business name]</code> before sending.</p>
+        <p class="tokens">Use <code>{{sender}}</code> and <code>{{category}}</code> for your details. <code>{{recipientName}}</code> recognises clear names such as <em>david@…</em>; otherwise it uses “there”. <code>{{businessName}}</code> uses “your business”.</p>
         <div class="actions">
           <button class="send" id="sendAll" type="button">Open emails</button>
           <button class="secondary" id="resetTemplate" type="button">Restore default template</button>
@@ -88,7 +88,7 @@
   <script>
     const defaults = {
       subject: 'An invitation to meet local business owners',
-      body: `Hi [Name],\n\nI came across [Business name] and thought it would be good to connect.\n\nI’ve recently been finding a local business-development group a genuinely useful way to meet other business owners, build relationships and generate introductions. We meet briefly on Zoom at 6.15am on Fridays, so it is easy to fit around the working week.\n\nI’m inviting a small number of people I think may get value from visiting. There is no obligation at all — just an opportunity to introduce your business and see whether the group feels useful.\n\nThis short video gives a sense of what we are about: https://youtu.be/Qdkqa1ALlAY?is=Zm1xl6MwFmhr7hQJ\n\nWould you be open to joining me one Friday?\n\nKind regards,\n{{sender}}`
+      body: `Hi {{recipientName}},\n\nI came across {{businessName}} and thought it would be good to connect.\n\nI’ve recently been finding a local business-development group a genuinely useful way to meet other business owners, build relationships and generate introductions. We meet briefly on Zoom at 6.15am on Fridays, so it is easy to fit around the working week.\n\nI’m inviting a small number of people I think may get value from visiting. There is no obligation at all — just an opportunity to introduce your business and see whether the group feels useful.\n\nThis short video gives a sense of what we are about: https://youtu.be/Qdkqa1ALlAY?is=Zm1xl6MwFmhr7hQJ\n\nWould you be open to joining me one Friday?\n\nKind regards,\n{{sender}}`
     };
     const storageKey = 'bni-email-outreach-v1';
     const fields = ['recipients', 'category', 'sender', 'subject', 'body'].reduce((all, id) => ({ ...all, [id]: document.getElementById(id) }), {});
@@ -97,7 +97,20 @@
     const preview = document.getElementById('preview');
 
     function saved() { try { return JSON.parse(localStorage.getItem(storageKey)) || {}; } catch { return {}; } }
-    function fillTemplate(text) { return text.replaceAll('{{category}}', fields.category.value.trim() || '[category]').replaceAll('{{sender}}', fields.sender.value.trim() || '[your name]'); }
+    const commonFirstNames = new Set(['adam','alex','alice','andrew','anna','ben','charlotte','chris','claire','dan','daniel','david','emma','frank','george','helen','ian','jack','james','jane','jason','john','jon','julia','karen','kate','lee','lisa','mark','matt','matthew','michael','nick','paul','peter','rachel','richard','robert','sarah','simon','steve','steven','susan','tom','victoria']);
+    function recipientName(email = '') {
+      const localPart = email.split('@')[0].toLowerCase();
+      const firstPart = localPart.split(/[._-]/)[0];
+      if (!commonFirstNames.has(firstPart)) return 'there';
+      return firstPart.charAt(0).toUpperCase() + firstPart.slice(1);
+    }
+    function fillTemplate(text, email = '') {
+      return text
+        .replaceAll('{{category}}', fields.category.value.trim() || '[category]')
+        .replaceAll('{{sender}}', fields.sender.value.trim() || '[your name]')
+        .replaceAll('{{recipientName}}', recipientName(email))
+        .replaceAll('{{businessName}}', 'your business');
+    }
     function recipients() {
       const emails = fields.recipients.value.split(/[\n,;]+/).map(value => value.trim().toLowerCase()).filter(value => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value));
       return [...new Set(emails)];
@@ -116,9 +129,11 @@
     document.getElementById('sendAll').addEventListener('click', () => {
       const list = recipients();
       if (!list.length) { status.textContent = 'Add at least one valid email address first.'; return; }
-      const subject = fillTemplate(fields.subject.value);
-      const body = fillTemplate(fields.body.value);
-      list.forEach(email => window.open(`mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`, '_blank'));
+      list.forEach(email => {
+        const subject = fillTemplate(fields.subject.value, email);
+        const body = fillTemplate(fields.body.value, email);
+        window.open(`mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`, '_blank');
+      });
       status.textContent = `${list.length} compose window${list.length === 1 ? '' : 's'} opened.`;
     });
     update();
