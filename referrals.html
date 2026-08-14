@@ -603,7 +603,9 @@
         const header = cols.map(col => (col.label || col.id || '').trim().toLowerCase());
         const find = name => header.findIndex(h => h === name.toLowerCase());
 
-        const memberIdx = find('member');
+        // The chapter sheet currently labels this column "Page Title: Member".
+        // Support that label as well as the simpler "Member" heading.
+        const memberIdx = find('member') !== -1 ? find('member') : find('page title: member');
         const idealReferralIdx = find('ideal referral');
         const notesIdx = find('notes');
         const meetingIdx = find('meeting');
