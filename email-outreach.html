@@ -15,6 +15,8 @@
     .back:hover { color:var(--red); }
     h1 { margin:0; font-size:42px; letter-spacing:-.7px; }
     .intro { max-width:680px; margin:12px 0 34px; color:var(--muted); font-size:17px; line-height:1.5; }
+    .contacts-link { display:inline-flex; align-items:center; gap:8px; margin:-14px 0 30px; color:#991b1b; font-size:14px; font-weight:650; text-decoration:none; }
+    .contacts-link:hover { color:var(--red); text-decoration:underline; }
     .grid { display:grid; grid-template-columns:1fr 1fr; gap:24px; align-items:start; }
     .card { padding:26px; border:1px solid var(--line); border-radius:14px; background:#fff; }
     .card h2 { margin:0 0 6px; font-size:20px; }
@@ -34,6 +36,10 @@
     .summary { margin:0; color:var(--muted); font-size:14px; }
     .status { min-height:21px; margin:14px 0 0; color:#166534; font-size:14px; }
     .preview { grid-column:1 / -1; background:var(--soft); }
+    .preview-heading { display:flex; align-items:center; justify-content:space-between; gap:12px; }
+    .preview-heading h2 { margin:0; }
+    .copy { padding:8px 12px; color:var(--ink); background:white; border:1px solid var(--line); font-size:13px; }
+    .copy:hover { border-color:var(--red); color:var(--red); }
     .email-preview { margin-top:16px; padding:18px; border:1px solid var(--line); border-radius:8px; background:white; font-size:14px; line-height:1.55; white-space:pre-wrap; overflow-wrap:anywhere; }
     .email-preview strong { display:block; }
     @media (max-width:700px) { .wrap { padding:30px 16px 48px; } h1 { font-size:32px; } .grid { grid-template-columns:1fr; } .template,.preview { grid-column:auto; } }
@@ -44,6 +50,7 @@
     <a class="back" href="index.html">← All BNI tools</a>
     <h1>Email outreach</h1>
     <p class="intro">Paste recipients, personalise the message, then open a ready-to-send email for each address in your usual mail app.</p>
+    <a class="contacts-link" href="https://docs.google.com/spreadsheets/d/1OHK7LDcbL38OBodLWi1lyu1yzNBa9SnqDrlRlwT439U/edit?gid=0#gid=0" target="_blank" rel="noopener">Open list of contacts to invite ↗</a>
 
     <div class="grid">
       <section class="card">
@@ -80,7 +87,10 @@
       </section>
 
       <section class="card preview">
-        <h2>Preview</h2>
+        <div class="preview-heading">
+          <h2>Preview</h2>
+          <button class="copy" id="copyPreview" type="button">Copy email</button>
+        </div>
         <div class="email-preview" id="preview"></div>
       </section>
     </div>
@@ -96,6 +106,7 @@
     const count = document.getElementById('recipientCount');
     const preview = document.getElementById('preview');
     const sendButton = document.getElementById('sendAll');
+    const copyButton = document.getElementById('copyPreview');
     let emailQueue = [];
     let queueIndex = 0;
 
@@ -128,6 +139,24 @@
     const data = saved();
     Object.entries(fields).forEach(([id, field]) => field.value = data[id] ?? defaults[id] ?? '');
     Object.values(fields).forEach(field => field.addEventListener('input', update));
+    copyButton.addEventListener('click', async () => {
+      const email = recipients()[0] || '';
+      const content = `Subject: ${fillTemplate(fields.subject.value, email)}\n\n${fillTemplate(fields.body.value, email)}`;
+      try {
+        await navigator.clipboard.writeText(content);
+        copyButton.textContent = 'Copied';
+        setTimeout(() => copyButton.textContent = 'Copy email', 1800);
+      } catch {
+        const text = document.createElement('textarea');
+        text.value = content;
+        document.body.appendChild(text);
+        text.select();
+        document.execCommand('copy');
+        text.remove();
+        copyButton.textContent = 'Copied';
+        setTimeout(() => copyButton.textContent = 'Copy email', 1800);
+      }
+    });
     document.getElementById('resetTemplate').addEventListener('click', () => { fields.subject.value = defaults.subject; fields.body.value = defaults.body; update(); status.textContent = 'Default template restored.'; });
     sendButton.addEventListener('click', () => {
       const list = recipients();
