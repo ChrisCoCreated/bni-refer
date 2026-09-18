@@ -5,10 +5,10 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <link rel="icon" href="favicon.ico" sizes="any" />
   <link rel="icon" href="favicon.png" type="image/png" />
-  <title>Get Your Foot in the Door with Care Business</title>
+  <title>A Chat About Getting Into Care Businesses</title>
   <meta
     name="description"
-    content="Register interest for the BNI session on Friday 9 October 2026 at 11:00 am and get your foot in the door with care business."
+    content="A relaxed BNI chat with Paul Musgrave about getting into care businesses, on Friday 9 October 2026 at 11:00 am."
   />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -391,6 +391,43 @@
       background: linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(255, 250, 220, 0.96));
     }
 
+    .panel-paul {
+      grid-column: 1 / -1;
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.98), rgba(255, 243, 178, 0.72));
+    }
+
+    .paul-profile {
+      display: grid;
+      grid-template-columns: 150px minmax(0, 1fr);
+      gap: 22px;
+      align-items: center;
+    }
+
+    .paul-profile img {
+      width: 150px;
+      height: 150px;
+      object-fit: cover;
+      object-position: center;
+      border-radius: 28px;
+      border: 4px solid rgba(255, 255, 255, 0.9);
+      box-shadow: 0 12px 24px rgba(17, 17, 17, 0.12);
+    }
+
+    .paul-profile h2 {
+      margin-bottom: 6px;
+    }
+
+    .paul-role {
+      margin-bottom: 10px !important;
+      color: var(--accent-deep) !important;
+      font-weight: 800;
+    }
+
+    .paul-link {
+      color: var(--ink);
+      font-weight: 700;
+    }
+
     .callout {
       padding: 16px;
       border-radius: var(--radius-md);
@@ -637,6 +674,10 @@
         flex-direction: column;
       }
 
+      .paul-profile {
+        grid-template-columns: 1fr;
+      }
+
       .secondary-info {
         padding: 20px 18px;
       }
@@ -697,21 +738,20 @@
       <div class="eyebrow">BNI Members Event</div>
       <div class="hero-grid">
         <div class="hero-copy">
-          <h1>Get your foot in the door with care business</h1>
+          <h1>A relaxed chat about getting into care businesses</h1>
           <p>
-            I have put 45 minutes in the diary for BNI members who want to get into care businesses,
-            ask better questions, and learn from someone who has led and worked in a lot of care businesses.
-            Bring your notes, your curiosity, and the questions you want to be able to ask with confidence.
+            Chris has put 45 minutes in Paul's diary for BNI members who are curious about care businesses.
+            It is a chance to ask questions, hear what the work is really like, and have an open conversation
+            with someone who has been doing it for a long time.
           </p>
 
           <div class="hero-note">
-            If you want to come, please contact Chris or Agota. It would help if you also send a couple of
-            bullet points about what you want to get out of the session, plus any specific questions that would
-            help us prepare.
+            If you would like to come, contact Chris or Agota. A couple of bullet points or questions in advance
+            would be useful, but there is no need to prepare anything fancy.
           </div>
 
           <div class="hero-actions">
-            <a class="button button-primary" href="#rsvp">Register interest</a>
+            <a class="button button-primary" href="#rsvp">Let us know you are coming</a>
             <button class="button button-secondary" id="copyInvite" type="button">Copy invite text</button>
             <button class="button button-secondary" id="addToCalendar" type="button">Add to calendar</button>
           </div>
@@ -719,7 +759,7 @@
 
         <aside class="hero-card" aria-label="Event summary">
           <h2>Event summary</h2>
-          <p style="margin-top:-6px;color:var(--muted);font-size:0.95rem;">A practical Thrive-style conversation about how to get started in care business.</p>
+          <p style="margin-top:-6px;color:var(--muted);font-size:0.95rem;">A relaxed Q&amp;A with Paul about getting into care.</p>
           <div class="event-meta">
             <div class="meta-row">
               <span>Date</span>
@@ -744,47 +784,65 @@
 
     <main class="content-grid" aria-label="Event details and registration">
       <section class="panel panel-what">
-        <h2>What the session is for</h2>
+        <h2>What we will chat about</h2>
         <p>
-          The goal is simple: help BNI members understand what it takes to get into care businesses,
-          what tends to matter most, and what questions are worth asking before you jump in.
+          This is just a chance to ask Paul what you have been wondering about and get a better feel for
+          the care sector before you take things any further.
         </p>
         <ul>
-          <li>Practical insight from a Director of Care with real experience in the sector.</li>
-          <li>Space to ask about business models, operations, staff, and service quality.</li>
-          <li>Helpful if you are exploring partnerships, referrals, or a move into care.</li>
+          <li>What running and working in care is actually like.</li>
+          <li>Questions about people, operations, referrals, and service quality.</li>
+          <li>Anything else you are curious about.</li>
         </ul>
       </section>
 
       <section class="panel panel-send">
-        <h2>What to send ahead of time</h2>
+        <h2>If you can, send this ahead</h2>
         <p>
-          To make the 45 minutes useful, please include:
+          It will help Paul make the conversation useful if you send:
         </p>
         <ul>
-          <li>A couple of bullet points about what you want to get out of it.</li>
-          <li>Any specific questions you want answered.</li>
-          <li>Any other BNI members you think should be invited.</li>
+          <li>A couple of things you would like to understand.</li>
+          <li>Any questions you already have.</li>
+          <li>Names of any other BNI members who might enjoy it.</li>
         </ul>
       </section>
 
       <section class="panel panel-invite">
-        <h2>Who should come?</h2>
+        <h2>Who is it for?</h2>
         <div class="callout">
-          Any BNI member who wants to understand care businesses better, whether that is for
-          referrals, partnerships, or simply to learn from someone who has been there.
+          Anyone in BNI who is curious about care, whether you are thinking about referrals,
+          partnerships, or simply want to ask a few questions.
+        </div>
+      </section>
+
+      <section class="panel panel-paul">
+        <div class="paul-profile">
+          <img
+            src="https://static.wixstatic.com/media/3cbab2_2ba1fa9e693443ed9ddc6e1b166b2097~mv2.jpeg"
+            alt="Paul Musgrave, Director of Care at Thrive Homecare"
+          />
+          <div>
+            <h2>Meet Paul</h2>
+            <p class="paul-role">Director of Care at Thrive Homecare</p>
+            <p>
+              Paul will lead the Q&amp;A. He has 30 years of experience in health and adult social care and
+              oversees the delivery of Thrive's services, including care standards and compliance.
+            </p>
+            <a class="paul-link" href="https://www.thrivehomecare.co.uk/team/paul-musgrave" target="_blank" rel="noopener">See Paul's team profile</a>
+          </div>
         </div>
       </section>
 
       <section class="panel panel-form" id="rsvp">
         <div class="panel-form-top">
           <div>
-            <div class="eyebrow">RSVP by email</div>
-            <h2>Register your place</h2>
+            <div class="eyebrow">Let us know</div>
+            <h2>Thinking of coming?</h2>
           </div>
           <p class="form-hint">
-            If you would like to come, contact Chris or Agota. You can also use this form to prepare an RSVP
-            email for Chris, including the questions you want him to see.
+            Contact Chris or Agota, or use this form to prepare a quick email to Chris with anything you would
+            like Paul to cover.
           </p>
         </div>
 
@@ -824,17 +882,17 @@
             </div>
 
             <div class="field field-wide">
-              <label for="questions">Specific questions for the Director of Care</label>
+              <label for="questions">Questions for Paul</label>
               <textarea
                 id="questions"
                 name="questions"
-                placeholder="Add any specific questions that would help him prepare."
+                placeholder="Anything you would like Paul to cover?"
               ></textarea>
             </div>
           </div>
 
           <div class="form-actions">
-            <button class="button button-primary" type="submit" id="submitButton">Send RSVP</button>
+            <button class="button button-primary" type="submit" id="submitButton">Prepare email</button>
             <button class="button button-secondary" id="copyRsvp" type="button">Copy RSVP text</button>
           </div>
         </form>
@@ -872,7 +930,7 @@
       const storageKey = 'bni-care-business-session-rsvp';
       const eventTitle = 'BNI Care Business Insights';
       const eventDescription =
-        'A 45 minute online BNI session with the Director of Care to share practical insight into care businesses.';
+        'A relaxed 45 minute online BNI Q&A with Paul Musgrave about getting into care businesses.';
       const eventLocation = 'Online';
       const eventStart = new Date('2026-10-09T11:00:00+01:00');
       const eventEnd = new Date(eventStart.getTime() + 45 * 60 * 1000);
@@ -929,10 +987,10 @@
         return [
           eventTitle,
           displayDate + ' at ' + displayTime,
-          '45 minutes online with the Director of Care.',
+          '45 minutes online with Paul Musgrave, Director of Care at Thrive Homecare.',
           '',
-          'If you want to come, please register here: ' + shareUrl,
-          'Please send a couple of bullet points about what you want to get out of it and any specific questions.'
+          'If you would like to come, contact Chris or Agota. You can also let us know here: ' + shareUrl,
+          'A couple of bullet points or questions would help Paul prepare, but there is no need to prepare anything fancy.'
         ].join('\n');
       }
 
@@ -951,7 +1009,7 @@
         const sections = [
           'Hi Chris,',
           '',
-          'I would like to register for the ' + eventTitle + ' on ' + displayDate + ' at ' + displayTime + '.',
+          'I would like to come to the ' + eventTitle + ' on ' + displayDate + ' at ' + displayTime + '.',
           '',
           'Name: ' + (data.fullName || ''),
           'Email: ' + (data.email || ''),
@@ -963,9 +1021,9 @@
           sections.push('', 'What I would like to get out of it:', goals);
         }
 
-        const questions = bulletize(data.questions);
-        if (questions) {
-          sections.push('', 'Specific questions for the Director of Care:', questions);
+          const questions = bulletize(data.questions);
+          if (questions) {
+            sections.push('', 'Questions for Paul:', questions);
         }
 
         const invitees = bulletize(data.invitees);
@@ -1143,7 +1201,7 @@
           setStatus(error.message || 'We could not prepare your email draft right now.', 'error');
         } finally {
           submitButton.disabled = false;
-          submitButton.textContent = 'Send RSVP';
+          submitButton.textContent = 'Prepare email';
         }
       });
 
@@ -1167,7 +1225,7 @@
       });
 
       loadDraft();
-      setStatus('Ready when you are. Fill in the form and send your RSVP to Chris.', 'info');
+      setStatus('Ready when you are. Fill in the form and send a note to Chris.', 'info');
     })();
   </script>
 </body>
