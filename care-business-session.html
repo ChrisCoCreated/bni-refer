@@ -5,10 +5,10 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <link rel="icon" href="favicon.ico" sizes="any" />
   <link rel="icon" href="favicon.png" type="image/png" />
-  <title>A Chat About Getting Into Care Businesses</title>
+  <title>A Chat About Supplying Care Businesses</title>
   <meta
     name="description"
-    content="A relaxed BNI chat with Paul Musgrave about getting into care businesses, on Friday 9 October 2026 at 11:00 am."
+    content="A relaxed BNI chat with Paul Musgrave about supplying care businesses, the NHS, and care homes, on Friday 9 October 2026 at 11:00 am."
   />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -738,11 +738,11 @@
       <div class="eyebrow">BNI Members Event</div>
       <div class="hero-grid">
         <div class="hero-copy">
-          <h1>A relaxed chat about getting into care businesses</h1>
+          <h1>A relaxed chat about supplying care businesses</h1>
           <p>
-            Chris has put 45 minutes in Paul's diary for BNI members who are curious about care businesses.
-            It is a chance to ask questions, hear what the work is really like, and have an open conversation
-            with someone who has been doing it for a long time.
+            Chris has put 45 minutes in Paul's diary for BNI members who want to supply care businesses,
+            the NHS, or care homes. It is a chance to ask how things work, what people actually need, and
+            how to start useful conversations without guessing.
           </p>
 
           <div class="hero-note">
@@ -752,14 +752,12 @@
 
           <div class="hero-actions">
             <a class="button button-primary" href="#rsvp">Let us know you are coming</a>
-            <button class="button button-secondary" id="copyInvite" type="button">Copy invite text</button>
-            <button class="button button-secondary" id="addToCalendar" type="button">Add to calendar</button>
           </div>
         </div>
 
         <aside class="hero-card" aria-label="Event summary">
           <h2>Event summary</h2>
-          <p style="margin-top:-6px;color:var(--muted);font-size:0.95rem;">A relaxed Q&amp;A with Paul about getting into care.</p>
+          <p style="margin-top:-6px;color:var(--muted);font-size:0.95rem;">A relaxed Q&amp;A with Paul about supplying care.</p>
           <div class="event-meta">
             <div class="meta-row">
               <span>Date</span>
@@ -787,12 +785,12 @@
         <h2>What we will chat about</h2>
         <p>
           This is just a chance to ask Paul what you have been wondering about and get a better feel for
-          the care sector before you take things any further.
+          supplying care businesses, the NHS, and care homes.
         </p>
         <ul>
-          <li>What running and working in care is actually like.</li>
-          <li>Questions about people, operations, referrals, and service quality.</li>
-          <li>Anything else you are curious about.</li>
+          <li>How care businesses, the NHS, and care homes buy and work with suppliers.</li>
+          <li>What people in care actually need from their suppliers.</li>
+          <li>How to approach conversations and find useful referral opportunities.</li>
         </ul>
       </section>
 
@@ -811,8 +809,8 @@
       <section class="panel panel-invite">
         <h2>Who is it for?</h2>
         <div class="callout">
-          Anyone in BNI who is curious about care, whether you are thinking about referrals,
-          partnerships, or simply want to ask a few questions.
+          Anyone in BNI who supplies, or would like to supply, care businesses, the NHS, or care homes.
+          It is also useful if you are looking for better referral conversations in this area.
         </div>
       </section>
 
@@ -875,9 +873,9 @@
                 name="goals"
                 required
                 placeholder="Write a few bullet points, for example:
-- understanding care business models
+- who care businesses and care homes buy from
 - how to start conversations with the right people
-- what a good referral looks like"
+- what makes a useful referral"
               ></textarea>
             </div>
 
@@ -929,19 +927,10 @@
     (function () {
       const storageKey = 'bni-care-business-session-rsvp';
       const eventTitle = 'BNI Care Business Insights';
-      const eventDescription =
-        'A relaxed 45 minute online BNI Q&A with Paul Musgrave about getting into care businesses.';
-      const eventLocation = 'Online';
-      const eventStart = new Date('2026-10-09T11:00:00+01:00');
-      const eventEnd = new Date(eventStart.getTime() + 45 * 60 * 1000);
-      const pageUrl = window.location.href.split('#')[0];
-      const shareUrl = pageUrl.startsWith('file:') ? 'care-business-session.html' : pageUrl;
 
       const form = document.getElementById('rsvpForm');
       const status = document.getElementById('status');
-      const copyInviteButton = document.getElementById('copyInvite');
       const copyRsvpButton = document.getElementById('copyRsvp');
-      const addToCalendarButton = document.getElementById('addToCalendar');
       const submitButton = document.getElementById('submitButton');
 
       const fields = {
@@ -981,17 +970,6 @@
         }
 
         return lines.map((line) => '- ' + line).join('\n');
-      }
-
-      function buildInviteText() {
-        return [
-          eventTitle,
-          displayDate + ' at ' + displayTime,
-          '45 minutes online with Paul Musgrave, Director of Care at Thrive Homecare.',
-          '',
-          'If you would like to come, contact Chris or Agota. You can also let us know here: ' + shareUrl,
-          'A couple of bullet points or questions would help Paul prepare, but there is no need to prepare anything fancy.'
-        ].join('\n');
       }
 
       function getFormData() {
@@ -1034,59 +1012,6 @@
         sections.push('', 'Thanks,', data.fullName || '');
 
         return sections.join('\n');
-      }
-
-      function toUtcStamp(date) {
-        const pad = (value) => String(value).padStart(2, '0');
-        return [
-          date.getUTCFullYear(),
-          pad(date.getUTCMonth() + 1),
-          pad(date.getUTCDate()),
-          'T',
-          pad(date.getUTCHours()),
-          pad(date.getUTCMinutes()),
-          pad(date.getUTCSeconds()),
-          'Z',
-        ].join('');
-      }
-
-      function escapeIcsText(text) {
-        return String(text || '')
-          .replace(/\\/g, '\\\\')
-          .replace(/\n/g, '\\n')
-          .replace(/,/g, '\\,')
-          .replace(/;/g, '\\;');
-      }
-
-      function downloadCalendarInvite() {
-        const ics = [
-          'BEGIN:VCALENDAR',
-          'VERSION:2.0',
-          'PRODID:-//BNI//Care Business Session//EN',
-          'CALSCALE:GREGORIAN',
-          'METHOD:PUBLISH',
-          'BEGIN:VEVENT',
-          'UID:bni-care-business-session-20261009@thrivehomecare.co.uk',
-          'DTSTAMP:' + toUtcStamp(new Date()),
-          'DTSTART:' + toUtcStamp(eventStart),
-          'DTEND:' + toUtcStamp(eventEnd),
-          'SUMMARY:' + escapeIcsText(eventTitle),
-          'DESCRIPTION:' + escapeIcsText(eventDescription),
-          'LOCATION:' + escapeIcsText(eventLocation),
-          'URL:' + escapeIcsText(pageUrl),
-          'END:VEVENT',
-          'END:VCALENDAR',
-        ].join('\r\n');
-
-        const blob = new Blob([ics], { type: 'text/calendar;charset=utf-8' });
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = 'bni-care-business-session.ics';
-        document.body.appendChild(link);
-        link.click();
-        link.remove();
-        setTimeout(() => URL.revokeObjectURL(url), 1000);
       }
 
       function saveDraft() {
@@ -1209,19 +1134,10 @@
         field.addEventListener('input', saveDraft);
       });
 
-      copyInviteButton.addEventListener('click', () => {
-        copyText(buildInviteText(), 'Invite text');
-      });
-
       copyRsvpButton.addEventListener('click', () => {
         const data = getFormData();
         const body = buildEmailBody(data);
         copyText(body, 'RSVP text');
-      });
-
-      addToCalendarButton.addEventListener('click', () => {
-        downloadCalendarInvite();
-        setStatus('Calendar invite downloaded.', 'success');
       });
 
       loadDraft();
